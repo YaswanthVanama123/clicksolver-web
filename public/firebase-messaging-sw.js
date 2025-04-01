@@ -14,66 +14,97 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Utility to store notifications
-function storeNotification(notificationData) {
+// Background message handler
+// messaging.onBackgroundMessage((payload) => {
+//   // console.log('[SW] Background message received:', payload);
+//   const notificationData = payload.data;
+  
+//   const notificationTitle = payload.notification?.title || 'New Notification';
+//   const notificationOptions = {
+//     body: payload.notification?.body || 'You have a new message',
+//     icon: '/firebase-logo.png',
+//     data: notificationData
+//   };
+
+//   storeNotification(notificationData);
+//   console.log('[SW] Showing system notification');
+//   return self.registration.showNotification(notificationTitle, notificationOptions);
+// });
+
+// Notification storage
+function storeNotification(data) {
+  console.log('[SW] Storing notification in IndexedDB:', data);
+  
   const request = indexedDB.open('notificationDB', 1);
 
   request.onupgradeneeded = (event) => {
+    console.log('[SW] Upgrading IndexedDB version...');
     const db = event.target.result;
     if (!db.objectStoreNames.contains('pendingNotifications')) {
+      console.log('[SW] Creating object store: pendingNotifications');
       db.createObjectStore('pendingNotifications', { keyPath: 'id', autoIncrement: true });
+    } else {
+      console.log('[SW] Object store already exists: pendingNotifications');
     }
   };
 
   request.onsuccess = (event) => {
+    console.log('[SW] IndexedDB opened successfully');
     const db = event.target.result;
-    const transaction = db.transaction('pendingNotifications', 'readwrite');
-    const store = transaction.objectStore('pendingNotifications');
-    store.add({
-      screen: notificationData.screen,
-      notification_id: notificationData.notification_id,
+    const tx = db.transaction('pendingNotifications', 'readwrite');
+    const store = tx.objectStore('pendingNotifications');
+
+    const notificationData = {
+      screen: data.screen,
+      notification_id: data.notification_id,
       timestamp: Date.now()
-    });
+    };
+    
+    console.log('[SW] Adding notification data to store:', notificationData);
+    const addRequest = store.add(notificationData);
+
+    addRequest.onsuccess = () => {
+      console.log('[SW] Notification stored successfully:', notificationData);
+    };
+
+    addRequest.onerror = (e) => {
+      console.error('[SW] Error storing notification:', e.target.error);
+    };
+  };
+
+  request.onerror = (event) => {
+    console.error('[SW] Database open error:', event.target.error);
   };
 }
 
-// Background message handler
-messaging.onBackgroundMessage((payload) => {
-  console.log('Received background message', payload);
-
-  const notificationTitle = payload.notification?.title || 'New Notification';
-  const notificationOptions = {
-    body: payload.notification?.body || 'You have a new message',
-    icon: '/firebase-logo.png',
-    data: {
-      screen: payload.data?.screen || '/',
-      notification_id: payload.data?.notification_id
-    }
-  };
-
-  storeNotification(payload.data);
-  return self.registration.showNotification(notificationTitle, notificationOptions);
-});
 
 // Notification click handler
 self.addEventListener('notificationclick', (event) => {
+  console.log('[SW] Notification clicked:', event.notification.data);
   event.notification.close();
   const { screen, notification_id } = event.notification.data;
   
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      console.log(`[SW] Handling navigation to: ${screen}`, notification_id);
       const targetPath = screen || '/';
       const encodedId = btoa(notification_id);
-      
+
       for (const client of clientList) {
         if (client.url.includes(targetPath) && 'focus' in client) {
+          console.log('[SW] Found existing client, focusing');
           return client.focus().then(() => {
-            client.postMessage({ type: 'NAVIGATE', path: targetPath, state: { encodedId } });
+            client.postMessage({ 
+              type: 'NAVIGATE', 
+              path: targetPath, 
+              state: { encodedId } 
+            });
           });
         }
       }
       
       if (self.clients.openWindow) {
+        console.log('[SW] Opening new window');
         return self.clients.openWindow(`${self.origin}${targetPath}`);
       }
     })

@@ -37,9 +37,11 @@ import ServiceTrackingItemScreen from './Components/ServiceTrackingItemScreen';
 import Navigation from './Components/Navigation';
 import ServiceInProgressScreen from './Components/ServiceInProgressScreen';
 import Payment from './Components/Paymentscreen';
-import { requestFCMToken } from './firebase';
+import { requestFCMToken,handleNotificationNavigation  } from './firebase';
 import SearchItem from './Components/SearchItem';
 import { getPendingNotifications, clearPendingNotifications } from './indexedDBHelpers';
+import ScrollToTop from './Components/ScrollToTop';
+import PrivacyPolicyPage from './Components/PrivacyPolicyPage';
 
 // --- TabNavigator Component ---
 function TabNavigator() {
@@ -105,6 +107,10 @@ function AppContent() {
       <div className="pb-16 overflow-hidden">
         <Routes>
           <Route path="/" element={<ServiceApp />} />
+
+          <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+
+          
           <Route path="/search" element={<SearchItem />} />
           <Route path="/ServiceTrackingItem" element={<ServiceTrackingItemScreen />} />
           <Route path="/UserNavigation" element={<Navigation />} />
@@ -142,21 +148,41 @@ function App() {
   const navigate = useNavigate();
 
   // Process pending notifications when the document becomes visible.
-  const handleVisibilityChange = async () => {
+  // const handleVisibilityChange = async () => {
+  //   if (document.visibilityState === 'visible') {
+  //     try {
+  //       const notifications = await getPendingNotifications();
+  //       notifications.forEach(({ screen, notification_id }) => {
+  //         if (screen && notification_id) {
+  //           navigate(screen, { state: { encodedId: btoa(notification_id) } });
+  //         }
+  //       });
+  //       await clearPendingNotifications();
+  //     } catch (error) {
+  //       console.error('Notification processing failed:', error);
+  //     }
+  //   }
+  // };
+
+  const handleVisibilityChange = () => {
+    console.log(`[APP] Visibility changed to: ${document.visibilityState}`);
+    
     if (document.visibilityState === 'visible') {
-      try {
-        const notifications = await getPendingNotifications();
-        notifications.forEach(({ screen, notification_id }) => {
-          if (screen && notification_id) {
-            navigate(screen, { state: { encodedId: btoa(notification_id) } });
-          }
-        });
-        await clearPendingNotifications();
-      } catch (error) {
-        console.error('Notification processing failed:', error);
-      }
+      console.log('[APP] App entered foreground, checking notifications');
+      getPendingNotifications()
+        .then(notifications => {
+          console.log(`[APP] Processing ${notifications.length} pending notifications`);
+          notifications.forEach(notification => {
+            handleNotificationNavigation(navigate, notification);
+          });
+          return clearPendingNotifications();
+        })
+        .then(() => console.log('[APP] Notifications processed and cleared'))
+        .catch(error => console.error('[APP] Error processing notifications:', error));
     }
   };
+
+
 
   useEffect(() => {
     requestFCMToken(navigate);
@@ -176,6 +202,7 @@ function AppWrapper() {
   return (
     <ThemeProvider>
       <Router>
+       <ScrollToTop />
         <App />
       </Router>
     </ThemeProvider>
