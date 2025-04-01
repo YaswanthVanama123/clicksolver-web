@@ -117,7 +117,7 @@ const ServiceInProgressScreen = () => {
         <FaArrowLeft
           size={20}
           className={`absolute left-4 cursor-pointer ${isDarkMode ? 'text-white' : 'text-gray-800'}`}
-          onClick={() => navigate('/home')}
+          onClick={() => navigate('/')}
         />
         <h1 className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
           {t('service_in_progress') || 'Service In Progress'}

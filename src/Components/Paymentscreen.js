@@ -93,7 +93,7 @@ const Payment = () => {
   };
 
   const onBackPress = () => {
-    navigate('/home', { replace: true });
+    navigate('/', { replace: true });
   };
 
   const openPhonePeScanner = () => {

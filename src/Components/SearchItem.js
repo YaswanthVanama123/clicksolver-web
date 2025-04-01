@@ -125,7 +125,7 @@ const SearchItem = () => {
   const handleServiceClick = useCallback(
     (item) => {
       storeRecentService(item);
-      navigate('/service-booking', {
+      navigate('/serviceBooking', {
         state: { serviceName: item.service_category, id: item.main_service_id },
       });
     },
@@ -159,7 +159,7 @@ const SearchItem = () => {
       key={`${item.main_service_id}-${index}`}
       className="flex flex-row gap-5 py-2 items-center cursor-pointer"
       onClick={() =>
-        navigate('/service-booking', {
+        navigate('/serviceBooking', {
           state: { serviceName: item.service_category, id: item.main_service_id },
         })
       }

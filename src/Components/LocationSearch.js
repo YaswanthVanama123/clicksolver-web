@@ -133,7 +133,8 @@ const LocationSearch = () => {
     <div className={`${isDarkMode ? 'bg-gray-900' : 'bg-white'} min-h-screen`}>
       {/* Search Bar */}
       <div className={`flex items-center p-4 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-        <button onClick={goBackToUserLocation} className="mr-4">
+        {/* Wrap goBackToUserLocation in an arrow function to prevent passing the event */}
+        <button onClick={() => goBackToUserLocation()} className="mr-4">
           <FaArrowLeft size={18} className={`${isDarkMode ? 'text-white' : 'text-gray-600'}`} />
         </button>
         <input

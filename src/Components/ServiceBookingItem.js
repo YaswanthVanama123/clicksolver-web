@@ -93,7 +93,7 @@ const ServiceBookingItem = () => {
       <div className="flex items-center mb-4">
         <button
           onClick={() =>
-            navigate('/tabs/home', {
+            navigate('/', {
               replace: true,
             })
           }

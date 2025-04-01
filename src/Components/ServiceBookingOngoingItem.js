@@ -106,7 +106,7 @@ const ServiceBookingOngoingItem = () => {
       <div className="flex items-center mb-4">
         <button
           onClick={() =>
-            navigate('/tabs/home', { replace: true })
+            navigate('/', { replace: true })
           }
           className="p-2 focus:outline-none"
         >
