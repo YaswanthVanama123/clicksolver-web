@@ -7,12 +7,12 @@ import {
   NavLink,
   useLocation,
   useNavigate,
-  Navigate, // Import Navigate for redirection
+  Navigate,
 } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import './i18n/i18n';
 import ServiceApp from './Screens/ServiceApp';
-import PaintingServices from './Screens/Indiv'; // Service category screen
+import PaintingServices from './Screens/Indiv';
 import SingleService from './Screens/SingleService';
 import LoginScreen from './Components/LoginScreen';
 import VerificationScreen from './Components/VerificationScreen';
@@ -39,6 +39,7 @@ import ServiceInProgressScreen from './Components/ServiceInProgressScreen';
 import Payment from './Components/Paymentscreen';
 import { requestFCMToken } from './firebase';
 import SearchItem from './Components/SearchItem';
+import { getPendingNotifications, clearPendingNotifications } from './indexedDBHelpers';
 
 // --- TabNavigator Component ---
 function TabNavigator() {
@@ -101,7 +102,6 @@ function AppContent() {
 
   return (
     <>
-      {/* The class "overflow-hidden" hides the scroll bar using Tailwind CSS */}
       <div className="pb-16 overflow-hidden">
         <Routes>
           <Route path="/" element={<ServiceApp />} />
@@ -129,29 +129,49 @@ function AppContent() {
           <Route path="/tracking" element={<ServiceTrackingListScreen />} />
           <Route path="/account" element={<ProfileScreen />} />
           <Route path="/language-selector" element={<LanguageSelector />} />
-          {/* Fallback route for unmatched paths */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </div>
-      {/* Render TabNavigator only if the current route is one of the defined tab routes */}
       {tabRoutes.includes(location.pathname) && <TabNavigator />}
     </>
   );
 }
 
-// --- App Component (Inside Router) ---
+// --- App Component ---
 function App() {
   const navigate = useNavigate();
 
+  // Process pending notifications when the document becomes visible.
+  const handleVisibilityChange = async () => {
+    if (document.visibilityState === 'visible') {
+      try {
+        const notifications = await getPendingNotifications();
+        notifications.forEach(({ screen, notification_id }) => {
+          if (screen && notification_id) {
+            navigate(screen, { state: { encodedId: btoa(notification_id) } });
+          }
+        });
+        await clearPendingNotifications();
+      } catch (error) {
+        console.error('Notification processing failed:', error);
+      }
+    }
+  };
+
   useEffect(() => {
-    // Call FCM token request and pass the navigate function so that notifications can trigger navigation.
     requestFCMToken(navigate);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [navigate]);
+
 
   return <AppContent />;
 }
 
-// --- AppWrapper Component (Sets up Router & ThemeProvider) ---
+// --- AppWrapper Component ---
 function AppWrapper() {
   return (
     <ThemeProvider>

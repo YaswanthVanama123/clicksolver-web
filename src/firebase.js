@@ -2,7 +2,6 @@ import { initializeApp } from 'firebase/app';
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 import axios from 'axios';
 
-// Your Firebase config (from your .env file)
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
   authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
@@ -15,35 +14,20 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const messaging = getMessaging(app);
 
-/**
- * Handle navigation when a notification arrives.
- * This function expects React Router's `navigate` function.
- */
+// Unified navigation handler
 export const handleNotificationNavigation = (navigate, data) => {
-    if (!data) return;
-    
-    const { screen, notification_id } = data;
-    if (!screen || !notification_id) {
-      console.log('Missing screen or notification_id in notification data.');
-      return;
-    }
-    
-    const encodedId = btoa(notification_id);
-    console.log('Navigating to:', screen, 'with state:', { encodedId });
-    
-    // Check if the screen value is 'home' (case insensitive) and navigate accordingly.
-    if (screen.toLowerCase() === 'home') {
-      navigate('/', { state: { encodedId } });
-    } else {
-      navigate(screen, { state: { encodedId } });
-    }
-  };
+  if (!data) return;
   
+  const { screen, notification_id } = data;
+  if (!screen || !notification_id) return;
 
-/**
- * Request FCM token, store it if needed, and listen for foreground messages.
- * Accepts React Router's navigate function to perform navigation on notification.
- */
+  const encodedId = btoa(notification_id);
+  navigate(screen.toLowerCase() === 'home' ? '/' : screen, { 
+    state: { encodedId } 
+  });
+};
+
+// Token management and foreground handler
 export const requestFCMToken = async (navigate) => {
   try {
     const permission = await Notification.requestPermission();
