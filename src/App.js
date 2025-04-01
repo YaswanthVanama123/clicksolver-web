@@ -7,6 +7,7 @@ import {
   NavLink,
   useLocation,
   useNavigate,
+  Navigate, // Import Navigate for redirection
 } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import './i18n/i18n';
@@ -100,7 +101,8 @@ function AppContent() {
 
   return (
     <>
-      <div className="pb-16">
+      {/* The class "overflow-hidden" hides the scroll bar using Tailwind CSS */}
+      <div className="pb-16 overflow-hidden">
         <Routes>
           <Route path="/" element={<ServiceApp />} />
           <Route path="/search" element={<SearchItem />} />
@@ -127,6 +129,8 @@ function AppContent() {
           <Route path="/tracking" element={<ServiceTrackingListScreen />} />
           <Route path="/account" element={<ProfileScreen />} />
           <Route path="/language-selector" element={<LanguageSelector />} />
+          {/* Fallback route for unmatched paths */}
+          <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </div>
       {/* Render TabNavigator only if the current route is one of the defined tab routes */}

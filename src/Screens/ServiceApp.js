@@ -179,9 +179,9 @@ function ServiceApp() {
     navigate('/serviceCategory', { state: { serviceObject: serviceName, id } });
   };
 
-  // Render special offers
+  // Render special offers with hidden scrollbar
   const renderSpecialOffers = () => (
-    <div className="flex flex-nowrap overflow-x-auto whitespace-nowrap gap-4">
+    <div className="flex flex-nowrap overflow-x-auto whitespace-nowrap gap-4 hide-scrollbar">
       {specialOffers.map((offer) => (
         <div
           key={offer.id}
@@ -190,17 +190,10 @@ function ServiceApp() {
         >
           <div className="w-2/3">
             <p className={`text-4xl font-bold ${offer.textColor}`}>{offer.title}</p>
-            <p
-              className={`text-lg font-semibold ${
-                // isDarkMode ? 'text-gray-100' : 'text-gray-600'
-                isDarkMode ? 'text-gray-600' : 'text-gray-600'
-              }`}
-            >
+            <p className="text-lg font-semibold text-gray-600">
               {offer.subtitle}
             </p>
-            <p
-              className={`text-sm ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}
-            >
+            <p className="text-sm text-gray-500">
               {offer.description}
             </p>
           </div>
@@ -283,8 +276,9 @@ function ServiceApp() {
   };
 
   return (
+    // Apply hide-scrollbar to the root container to hide vertical scrollbar
     <div
-      className={`min-h-screen p-4 ${
+      className={`min-h-screen p-4 hide-scrollbar ${
         isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'
       }`}
     >
@@ -388,7 +382,7 @@ function ServiceApp() {
             isDarkMode ? 'bg-gray-700' : 'bg-white'
           } shadow`}
         >
-          <div className="flex overflow-x-auto" ref={scrollViewRef}>
+          <div className="flex overflow-x-auto hide-scrollbar" ref={scrollViewRef}>
             {trackScreen.map((item, index) => (
               <div
                 key={index}
