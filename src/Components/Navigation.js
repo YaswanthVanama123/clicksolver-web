@@ -4,7 +4,7 @@ import polyline from '@mapbox/polyline';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { AiOutlineArrowLeft } from 'react-icons/ai';
 import { FaCrosshairs, FaAngleRight } from 'react-icons/fa';
-import { MdRefresh } from "react-icons/md";
+import { MdRefresh } from 'react-icons/md';
 import { RxCrossCircled } from 'react-icons/rx';
 import { IoMdCall } from 'react-icons/io';
 import { LuMessageCircleMore } from 'react-icons/lu';
@@ -23,20 +23,16 @@ const Navigation = () => {
   const params = route.state || {};
 
   // ========= STATE VARIABLES =========
-  // For map & route
   const [routeData, setRouteData] = useState(null);
   const [locationDetails, setLocationDetails] = useState(null);
-  // For worker details
   const [decodedId, setDecodedId] = useState(null);
   const [encodedData, setEncodedData] = useState(null);
   const [addressDetails, setAddressDetails] = useState({}); // { name, phone_number, profile, area, rating, serviceCounts }
   const [pin, setPin] = useState('');
   const [serviceArray, setServiceArray] = useState([]);
-  // UI states
   const [modalVisible, setModalVisible] = useState(false);
   const [confirmationModalVisible, setConfirmationModalVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  // Countdown timer (if needed)
   const [timeLeft, setTimeLeft] = useState(600);
 
   // ========= REFS =========
@@ -49,7 +45,6 @@ const Navigation = () => {
     if (encodedId) {
       setEncodedData(encodedId);
       try {
-        // atob is built into browsers
         setDecodedId(atob(encodedId));
       } catch (err) {
         console.error('Error decoding Base64:', err);
@@ -125,7 +120,7 @@ const Navigation = () => {
         { params: { notification_id: decodedId } }
       );
       const { startPoint, endPoint } = response.data;
-      // Reverse from [lat, lng] to [lng, lat]
+      // Reverse coordinates from [lat, lng] to [lng, lat]
       const reversedStart = [startPoint[1], startPoint[0]];
       const reversedEnd = [endPoint[1], endPoint[0]];
       setLocationDetails({ startPoint: reversedStart, endPoint: reversedEnd });
@@ -148,7 +143,6 @@ const Navigation = () => {
         console.error('No polyline found in response');
         return null;
       }
-      // Decode polyline and reverse coordinates to [lng, lat]
       const decodedCoords = polyline
         .decode(encodedPolyline)
         .map(([lat, lng]) => [lng, lat]);
@@ -226,9 +220,8 @@ const Navigation = () => {
           });
           mapInstanceRef.current = map;
   
-          // Add markers for start and end points using custom HTML elements
+          // Add markers for start and end points
           if (locationDetails) {
-            // Start marker
             const startEl = document.createElement('img');
             startEl.src = startMarker;
             startEl.style.width = '32px';
@@ -237,7 +230,6 @@ const Navigation = () => {
               .setLngLat(locationDetails.startPoint)
               .addTo(map);
   
-            // End marker
             const endEl = document.createElement('img');
             endEl.src = endMarker;
             endEl.style.width = '32px';
@@ -247,7 +239,6 @@ const Navigation = () => {
               .addTo(map);
           }
   
-          // Once the map is loaded, add the route layer if data is available
           map.on('load', () => {
             if (routeData) {
               addRouteLayer(map, routeData);
@@ -296,7 +287,6 @@ const Navigation = () => {
       <p className="text-sm text-gray-800 dark:text-gray-100 w-24">
         {t(`singleService_${item.main_service_id}`) || item.serviceName}
       </p>
-      {/* <p className="text-sm text-gray-800 dark:text-gray-100">₹{item.totalCost}</p> */}
     </div>
   );
 
@@ -373,7 +363,7 @@ const Navigation = () => {
           <div ref={mapContainerRef} className="w-full h-full" />
         ) : (
           <div className="flex items-center justify-center w-full h-full">
-            <p className={isDarkMode ? 'text-white' : 'text-black'}>
+            <p className="text-black dark:text-white">
               {t('loading_map') || 'Loading Map...'}
             </p>
           </div>
@@ -450,7 +440,9 @@ const Navigation = () => {
                 />
               )}
             </div>
-            <p className="text-sm text-gray-800 dark:text-gray-100">{addressDetails.name || 'Worker Name'}</p>
+            <p className="text-sm text-gray-800 dark:text-gray-100">
+              {addressDetails.name || 'Worker Name'}
+            </p>
             {addressDetails.rating !== undefined && (
               <div className="flex items-center mt-1">
                 <p className="text-sm text-gray-800 dark:text-gray-100 mr-1">
@@ -468,13 +460,13 @@ const Navigation = () => {
                 className="bg-gray-200 dark:bg-gray-600 p-2 rounded-full"
                 onClick={() => (window.location.href = `tel:${addressDetails.phone_number || ''}`)}
               >
-                <IoMdCall size={18} color="#FF5722" />
+                <IoMdCall size={18} className="text-[#FF5722]" />
               </button>
               <button
                 className="bg-gray-200 dark:bg-gray-600 p-2 rounded-full"
                 onClick={messageChatting}
               >
-                <LuMessageCircleMore size={18} color="#FF5722" />
+                <LuMessageCircleMore size={18} className="text-[#FF5722]" />
               </button>
             </div>
           </div>
@@ -486,7 +478,7 @@ const Navigation = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-end z-50">
           <div className="bg-white dark:bg-gray-800 rounded-t-2xl w-full p-6">
             <button onClick={closeModal} className="absolute top-4 left-4">
-              <AiOutlineArrowLeft size={20} color={isDarkMode ? '#fff' : 'black'} />
+              <AiOutlineArrowLeft size={20} className="text-gray-900 dark:text-white" />
             </button>
             <h2 className="text-center text-lg font-bold text-gray-800 dark:text-gray-100">
               {t('cancellation_reason_title') ||
@@ -506,7 +498,7 @@ const Navigation = () => {
                   <span className="text-base text-gray-800 dark:text-gray-100">
                     {t(key) || key.replace('_', ' ')}
                   </span>
-                  <FaAngleRight size={16} color={isDarkMode ? '#fff' : '#4a4a4a'} />
+                  <FaAngleRight size={16} className="text-gray-400 dark:text-gray-300" />
                 </button>
               ))}
             </div>
@@ -519,7 +511,7 @@ const Navigation = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-end z-50">
           <div className="bg-white dark:bg-gray-800 rounded-t-2xl w-full p-6 relative">
             <button onClick={closeConfirmationModal} className="absolute top-4 right-4">
-              <RxCrossCircled size={20} color={isDarkMode ? '#fff' : 'black'} />
+              <RxCrossCircled size={20} className="text-gray-900 dark:text-white" />
             </button>
             <h2 className="text-center text-lg font-bold text-gray-800 dark:text-gray-100">
               {t('confirmation_title') ||

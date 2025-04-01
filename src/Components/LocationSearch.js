@@ -5,6 +5,7 @@ import { FaArrowLeft } from 'react-icons/fa';
 import { AiOutlineClose } from 'react-icons/ai';
 import { MdLocationOn } from 'react-icons/md';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '../context/ThemeContext';
 
 // Set your Ola Maps Places API key (for autocomplete)
 const PLACES_API_KEY = 'iN1RT7PQ41Z0DVxin6jlf7xZbmbIZPtb9CyNwtlT';
@@ -21,9 +22,10 @@ const LocationSearch = () => {
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [noResults, setNoResults] = useState(false);
   const [serviceArray, setServiceArray] = useState([]);
-  // Assume dark mode state is provided from your theme context; here we default to false.
-  const isDarkMode = false;
-
+  
+  // Retrieve dark mode state from context
+  const { isDarkMode } = useTheme();
+  
   // Ref for the search input
   const inputRef = useRef(null);
 
@@ -41,7 +43,6 @@ const LocationSearch = () => {
 
   // Fetch suggestions from Ola Maps autocomplete API
   const fetchSuggestions = useCallback(async () => {
-    // Enforce a minimum query length to avoid 400 errors.
     if (query.trim().length < 2) {
       setSuggestions([]);
       setNoResults(false);
@@ -50,14 +51,10 @@ const LocationSearch = () => {
 
     setLoadingSuggestions(true);
     try {
-      // Note: Use "input" (not "query") as the parameter per the Ola Maps documentation.
-      const url = `https://api.olamaps.io/places/v1/autocomplete?input=${encodeURIComponent(
-        query
-      )}&api_key=${PLACES_API_KEY}`;
+      const url = `https://api.olamaps.io/places/v1/autocomplete?input=${encodeURIComponent(query)}&api_key=${PLACES_API_KEY}`;
       const response = await axios.get(url, {
         headers: { 'X-Request-Id': `req-${Date.now()}` },
       });
-      // Expecting response.data.predictions as an array.
       if (response.data && response.data.predictions && response.data.predictions.length > 0) {
         const places = response.data.predictions.map((place) => ({
           id: place.place_id,
@@ -123,26 +120,26 @@ const LocationSearch = () => {
         onClick={() => handleSuggestionPress(item)}
       >
         <div className="mr-3">
-          <MdLocationOn size={24} color={isDarkMode ? '#bbb' : '#6e6e6e'} />
+          <MdLocationOn size={24} className="text-gray-600 dark:text-gray-400" />
         </div>
         <div className="flex-1">
           <p className="text-base font-semibold text-gray-800 dark:text-gray-100">{item.title}</p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{item.address}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-300">{item.address}</p>
         </div>
         <div>
-          <AiOutlineClose size={18} color={isDarkMode ? '#ccc' : '#4a4a4a'} />
+          <AiOutlineClose size={18} className="text-gray-400 dark:text-gray-300" />
         </div>
       </div>
     ),
-    [handleSuggestionPress, isDarkMode]
+    [handleSuggestionPress]
   );
 
   return (
-    <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`}>
+    <div className="min-h-screen bg-white dark:bg-gray-900">
       {/* Search Bar */}
       <div className="flex items-center p-4 border-b border-gray-200 dark:border-gray-700">
         <button onClick={goBackToUserLocation} className="mr-4">
-          <FaArrowLeft size={18} color={isDarkMode ? '#fff' : 'gray'} />
+          <FaArrowLeft size={18} className="text-gray-600 dark:text-white" />
         </button>
         <input
           ref={inputRef}
@@ -154,7 +151,7 @@ const LocationSearch = () => {
         />
         {query.length > 0 && (
           <button onClick={() => setQuery('')} className="ml-2">
-            <AiOutlineClose size={18} color={isDarkMode ? '#ccc' : '#4a4a4a'} />
+            <AiOutlineClose size={18} className="text-gray-400 dark:text-gray-300" />
           </button>
         )}
       </div>
@@ -166,7 +163,9 @@ const LocationSearch = () => {
         </div>
       ) : noResults ? (
         <div className="flex justify-center items-center mt-6">
-          <p className="text-gray-600 dark:text-gray-300">{t('no_locations_found') || 'No locations found'}</p>
+          <p className="text-gray-600 dark:text-gray-300">
+            {t('no_locations_found') || 'No locations found'}
+          </p>
         </div>
       ) : (
         <div className="mt-2">

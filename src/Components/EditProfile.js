@@ -63,16 +63,16 @@ const EditProfile = () => {
   };
 
   return (
-    <div className={`min-h-screen relative p-4 ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`}>
+    <div className="min-h-screen relative p-4 bg-white dark:bg-gray-900">
       <div className="overflow-y-auto">
         {/* Header */}
         <div className="flex items-center mb-4">
           <MdArrowBack
             size={24}
-            className={`cursor-pointer ${isDarkMode ? 'text-white' : 'text-black'}`}
+            className="cursor-pointer text-black dark:text-white"
             onClick={() => navigate(-1)}
           />
-          <h2 className={`flex-1 text-center font-semibold text-xl ${isDarkMode ? 'text-white' : 'text-blue-900'}`}>
+          <h2 className="flex-1 text-center font-semibold text-xl text-blue-900 dark:text-white">
             {t('edit_profile') || 'Edit Profile'}
           </h2>
         </div>

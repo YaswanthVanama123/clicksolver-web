@@ -1,302 +1,358 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate, useLocation, CommonActions } from 'react-router-dom';
-import axios from 'axios';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FaIndianRupeeSign } from "react-icons/fa6";
-// Icons from react-icons
-import { FaArrowLeft } from 'react-icons/fa';
-import { IoMdAlert } from "react-icons/io";
-import { MdChevronRight, MdLocalOffer } from 'react-icons/md';
-// Lottie animation (if needed)
+import axios from 'axios';
 import Lottie from 'lottie-react';
-// Import your Lottie JSON file if needed
-// import serviceLoadingAnimation from '../assets/serviceLoading.json';
+import { useNavigate } from 'react-router-dom';
 
-const Payment = () => {
+// React-icons imports
+import { IoMoonOutline, IoSunnyOutline } from 'react-icons/io5';
+import { MdLogout, MdPerson, MdEdit, MdEmail } from 'react-icons/md';
+import { MdDeleteOutline, MdAccountCircle } from 'react-icons/md';
+import { FiGlobe } from 'react-icons/fi';
+import { AiOutlineInfoCircle } from 'react-icons/ai';
+
+import { useTheme } from '../context/ThemeContext';
+import profileAnimation from '../assets/profileAnimation.json';
+
+// Reusable MenuItem component
+const MenuItem = ({ icon, text, onClick }) => (
+  <button
+    className="flex items-center w-full py-3 justify-center sm:justify-start"
+    onClick={onClick}
+  >
+    {icon}
+    <span className="ml-3 text-base text-gray-800 dark:text-white">{text}</span>
+  </button>
+);
+
+const ProfileScreen = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { t } = useTranslation();
+  const { isDarkMode, toggleTheme } = useTheme();
 
-  // Assume encodedId is passed via location.state
-  const { encodedId } = location.state || {};
+  // State variables
+  const [account, setAccount] = useState({});
+  const [image, setImage] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
 
-  // State variables (adjust as needed)
-  const [paymentMethod, setPaymentMethod] = useState('');
-  const [couponCode, setCouponCode] = useState('');
-  const [totalAmount, setTotalAmount] = useState(0);
-  const [gstAmount, setGstAmount] = useState(0);
-  const [cgstAmount, setCgstAmount] = useState(0);
-  const [cashback, setCashback] = useState(0);
-  const [grandTotal, setGrandTotal] = useState(0);
-  const [serviceArray, setServiceArray] = useState([]);
-  const [vocherModal, setVocherModal] = useState(false);
-  const [paymentModal, setPaymentModal] = useState(false);
-  const [decodedId, setDecodedId] = useState(null);
-  const [discount, setDiscount] = useState(0);
-  const [totalCost, setTotalCost] = useState(0);
-  const [value, setValue] = useState('');
-  const [paymentDetails, setPaymentDetails] = useState({});
+  // Retrieve token from localStorage
+  const csToken = localStorage.getItem('cs_token');
 
-  // Decode encodedId and fetch payment details
-  const fetchPaymentDetails = useCallback(async (decodedId) => {
+  // Fetch profile details
+  const fetchProfileDetails = async () => {
     try {
-      console.log('[Payment] Fetching payment details for:', decodedId);
+      setLoading(true);
+      setError(false);
+      if (!csToken) {
+        setIsLoggedIn(false);
+        setLoading(false);
+        return;
+      }
+      setIsLoggedIn(true);
       const response = await axios.post(
-        'https://backend.clicksolver.com/api/payment/details',
-        { notification_id: decodedId }
+        'https://backend.clicksolver.com/api/user/profile',
+        {},
+        { headers: { Authorization: `Bearer ${csToken}` } }
       );
-      const {
-        service_booked,
-        name,
-        area,
-        city,
-        pincode,
-        discount,
-        total_cost,
-        profile,
-      } = response.data;
-
-      setDiscount(discount || 0);
-      setTotalCost(total_cost || 0);
-      setPaymentDetails({ city, area, pincode, name, profile });
-      setServiceArray(service_booked || []);
-      console.log('[Payment] Payment details updated successfully.');
-    } catch (error) {
-      console.error('[Payment] Error fetching payment details:', error);
+      const { name, email, phone_number, profile } = response.data;
+      setImage(profile);
+      setAccount({ name, email, phoneNumber: phone_number, profile });
+    } catch (err) {
+      console.error('Error fetching profile details:', err);
+      if (err.response && err.response.status === 401) {
+        localStorage.removeItem('cs_token');
+        setIsLoggedIn(false);
+      } else {
+        setError(true);
+      }
+    } finally {
+      setLoading(false);
     }
-  }, []);
+  };
 
   useEffect(() => {
-    if (encodedId) {
-      try {
-        const decoded = atob(encodedId);
-        console.log('[Payment] Decoded encodedId:', decoded);
-        setDecodedId(decoded);
-        fetchPaymentDetails(decoded);
-      } catch (error) {
-        console.error('[Payment] Error decoding Base64:', error);
+    fetchProfileDetails();
+  }, []);
+
+  // Handle image editing via a file input
+  const handleEditImage = async () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = async (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const formData = new FormData();
+        formData.append('key', '287b4ba48139a6a59e75b5a8266bbea2');
+        formData.append('image', file);
+        try {
+          const res = await axios.post('https://api.imgbb.com/1/upload', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          });
+          if (res.status === 200) {
+            const uploadedUrl = res.data.data.url;
+            setImage(uploadedUrl);
+            if (csToken) {
+              await axios.post(
+                'https://backend.clicksolver.com/api/user/updateProfileImage',
+                { profileImage: uploadedUrl },
+                { headers: { Authorization: `Bearer ${csToken}` } }
+              );
+              setAccount((prev) => ({ ...prev, profileImage: uploadedUrl }));
+            }
+          }
+        } catch (error) {
+          console.error('Error uploading image:', error);
+        }
       }
+    };
+    input.click();
+  };
+
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      const fcm_token = localStorage.getItem('fcm_token');
+      if (fcm_token) {
+        await axios.post('https://backend.clicksolver.com/api/userLogout', { fcm_token });
+      }
+      localStorage.removeItem('cs_token');
+      localStorage.removeItem('fcm_token');
+      localStorage.removeItem('notifications');
+      localStorage.removeItem('messageBox');
+      setIsLoggedIn(false);
+      setLogoutModalVisible(false);
+      navigate('/login');
+    } catch (err) {
+      console.error('Error logging out:', err);
     }
-  }, [encodedId, fetchPaymentDetails]);
-
-  const toggleVocher = () => {
-    setVocherModal((prev) => !prev);
-    console.log('[Payment] Toggled voucher modal');
   };
 
-  const togglePayment = () => {
-    setPaymentModal((prev) => !prev);
-    console.log('[Payment] Toggled payment modal');
-  };
+  const confirmLogout = () => setLogoutModalVisible(true);
+  const closeModal = () => setLogoutModalVisible(false);
 
-  const applyCoupon = () => {
-    console.log('[Payment] Apply coupon code:', value);
-    // Implement your coupon logic here
-  };
-
-  const onBackPress = () => {
-    navigate(
-      '/home',
-      { replace: true }
+  // Render if not logged in
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col items-center pt-10">
+        <h1 className="text-2xl font-semibold text-gray-800 dark:text-white mb-8">{t('profile')}</h1>
+        <button
+          onClick={() => navigate('/login')}
+          className="bg-orange-500 text-white px-6 py-3 rounded-lg"
+        >
+          {t('login_or_signup')}
+        </button>
+        <div className="mt-6 w-full max-w-md space-y-3 text-center">
+          <MenuItem
+            icon={isDarkMode ? <IoMoonOutline size={22} color="#fff" /> : <IoSunnyOutline size={22} color="#4a4a4a" />}
+            text={isDarkMode ? t('dark_theme') : t('light_theme')}
+            onClick={toggleTheme}
+          />
+          <MenuItem
+            icon={<MdPerson size={22} color={isDarkMode ? '#fff' : '#4a4a4a'} />}
+            text={t('my_services')}
+            onClick={() => navigate('/recent-services')}
+          />
+          <MenuItem
+            icon={<MdEmail size={22} color={isDarkMode ? '#fff' : '#4a4a4a'} />}
+            text={t('help_and_support')}
+            onClick={() => navigate('/help')}
+          />
+          {/* Only show delete and edit options if csToken exists */}
+          {csToken && (
+            <>
+              <MenuItem
+                icon={<MdDeleteOutline size={22} color={isDarkMode ? '#fff' : '#4a4a4a'} />}
+                text={t('account_delete')}
+                onClick={() => navigate('/delete-account', { state: { details: account } })}
+              />
+              <MenuItem
+                icon={<MdAccountCircle size={22} color={isDarkMode ? '#fff' : '#4a4a4a'} />}
+                text={t('edit_profile')}
+                onClick={() => navigate('/edit-profile', { state: { details: account } })}
+              />
+            </>
+          )}
+          <MenuItem
+            icon={<AiOutlineInfoCircle size={22} color={isDarkMode ? '#fff' : '#4a4a4a'} />}
+            text={t('refer_and_earn')}
+            onClick={() => navigate('/referral')}
+          />
+          <MenuItem
+            icon={<FiGlobe size={22} color={isDarkMode ? '#fff' : '#4a4a4a'} />}
+            text={t('change_language')}
+            onClick={() => navigate('/language-selector')}
+          />
+          <MenuItem
+            icon={<AiOutlineInfoCircle size={22} color={isDarkMode ? '#fff' : '#4a4a4a'} />}
+            text={t('about_cs')}
+            onClick={() => navigate('/about-cs')}
+          />
+          <MenuItem
+            icon={<MdLogout size={22} color="#FF0000" />}
+            text={t('logout')}
+            onClick={confirmLogout}
+          />
+        </div>
+      </div>
     );
-  };
+  }
 
-  const openPhonePeScanner = () => {
-    const url = 'phonepe://scan';
-    // Try to open PhonePe; if it fails, open the Play Store link
-    window.open(url, '_blank') ||
-      window.open('https://play.google.com/store/apps/details?id=com.phonepe.app', '_blank');
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen flex justify-center items-center">
+        <Lottie
+          animationData={profileAnimation}
+          autoPlay
+          loop
+          style={{ width: 200, height: 200 }}
+        />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col justify-center items-center">
+        <p className="text-lg text-gray-800">{t('something_went_wrong')}</p>
+        <button onClick={fetchProfileDetails} className="mt-4 px-4 py-2 bg-orange-500 text-white rounded">
+          {t('retry')}
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col">
-      {/* Header */}
-      <header className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-        <button onClick={onBackPress} className="text-gray-500">
-          <FaArrowLeft size={20} />
-        </button>
-        <h1 className="text-lg font-bold text-gray-800 dark:text-white">
-          {t('payment_screen') || 'Payment Screen'}
-        </h1>
-        <div>{/* Empty placeholder for alignment */}</div>
-      </header>
-
-      {/* Main content scrollable area */}
-      <div className="flex-1 overflow-y-auto p-4">
-        {/* Service Summary Section */}
-        <section className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow mb-4">
-          <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">
-            {t('service_summary') || 'Service Summary'}
-          </h2>
-          <div className="flex items-center space-x-4 mb-4">
-            <img
-              src={
-                paymentDetails.profile ||
-                'https://via.placeholder.com/150'
-              }
-              alt="Profile"
-              className="w-16 h-16 rounded-full object-cover"
-            />
-            <div>
-              <p className="text-base text-gray-800 dark:text-white">
-                {paymentDetails.name}
-              </p>
-            </div>
-          </div>
-          <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded mb-4">
-            <div className="flex justify-between mb-2">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                  {t('commander_name') || 'Commander Name'}
-                </p>
-                <p className="text-sm font-medium text-gray-800 dark:text-white">
-                  {paymentDetails.name}
-                </p>
+    <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`}>
+      <div className="max-w-3xl mx-auto p-4">
+        {/* Profile Header */}
+        <div className="flex flex-col items-center mb-6">
+          <div className="relative w-20 h-20 mb-3">
+            {image ? (
+              <img src={image} alt="Profile" className="w-20 h-20 rounded-full object-cover" />
+            ) : (
+              <div className="w-20 h-20 rounded-full bg-orange-500 flex items-center justify-center">
+                <MdPerson size={40} color="#FFF" />
               </div>
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                  {t('services') || 'Services'}
-                </p>
-                {serviceArray.map((service, index) => (
-                  <p key={index} className="text-sm font-medium text-gray-800 dark:text-white">
-                    {t(`singleService_${service.main_service_id}`) || service.serviceName}
-                  </p>
-                ))}
-              </div>
-            </div>
-            <p className="text-sm text-gray-600 dark:text-gray-300">
-              {t('location') || 'Location'}
-            </p>
-            <p className="text-sm font-medium text-gray-800 dark:text-white">
-              {paymentDetails.area}
-            </p>
-          </div>
-        </section>
-
-        {/* Payment Summary Section */}
-        <section className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow mb-4">
-          <div className="flex justify-between items-center mb-2">
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
-              {t('payment_summary') || 'Payment Summary'}
-            </h2>
-            <button onClick={togglePayment} className="text-gray-400">
-              <MdChevronRight size={20} />
+            )}
+            <button onClick={handleEditImage} className="absolute bottom-0 right-0 bg-orange-500 rounded p-1">
+              <MdEdit size={18} color="#FFF" />
             </button>
           </div>
-          {paymentModal ? (
+          <p className="text-2xl font-medium text-gray-800 dark:text-white">{account.name}</p>
+        </div>
+
+        {/* Email Field */}
+        <div className="flex items-center bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg p-3 mb-4">
+          <MdEmail size={24} color="#4a4a4a" />
+          <input
+            type="text"
+            value={account.email}
+            readOnly
+            className="flex-1 ml-3 bg-transparent text-base text-gray-800 dark:text-white"
+          />
+        </div>
+
+        {/* Phone Field */}
+        <div className="flex items-center bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg p-3 mb-4">
+          <div className="flex items-center">
+            <img src="https://flagcdn.com/w40/in.png" alt="Flag" className="w-6 h-4" />
+            <span className="ml-2 text-base font-medium text-gray-800 dark:text-white">+91</span>
+          </div>
+          <input
+            type="text"
+            value={account.phoneNumber}
+            readOnly
+            className="flex-1 ml-3 bg-transparent text-base text-gray-800 dark:text-white"
+          />
+        </div>
+
+        <div className="border-t border-gray-300 dark:border-gray-600 my-4"></div>
+
+        {/* Options Menu */}
+        <div className="space-y-4">
+          <MenuItem
+            icon={isDarkMode ? <IoMoonOutline size={22} color="#fff" /> : <IoSunnyOutline size={22} color="#4a4a4a" />}
+            text={isDarkMode ? t('dark_theme') : t('light_theme')}
+            onClick={toggleTheme}
+          />
+          <MenuItem
+            icon={<MdPerson size={22} color={isDarkMode ? '#fff' : '#4a4a4a'} />}
+            text={t('my_services')}
+            onClick={() => navigate('/recent-services')}
+          />
+          <MenuItem
+            icon={<MdEmail size={22} color={isDarkMode ? '#fff' : '#4a4a4a'} />}
+            text={t('help_and_support')}
+            onClick={() => navigate('/help')}
+          />
+          {csToken && (
             <>
-              <div className="flex flex-col space-y-2">
-                {serviceArray.map((service, index) => (
-                  <div key={index} className="flex justify-between">
-                    <span className="text-sm text-gray-600 dark:text-gray-300">
-                      {t(`singleService_${service.main_service_id}`) || service.serviceName}
-                    </span>
-                    <span className="text-sm font-bold text-gray-800 dark:text-white">
-                      ₹ {service.cost ? service.cost.toFixed(2) : '0.00'}
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <div className="flex justify-between mt-2">
-                <span className="text-sm text-gray-600 dark:text-gray-300">{t('gst')}</span>
-                <span className="text-sm font-bold text-gray-800 dark:text-white">₹ 0.00</span>
-              </div>
-              <div className="flex justify-between mt-2">
-                <span className="text-sm text-gray-600 dark:text-gray-300">{t('cgst')}</span>
-                <span className="text-sm font-bold text-gray-800 dark:text-white">₹ 0.00</span>
-              </div>
-              {discount > 0 && (
-                <div className="flex justify-between mt-2">
-                  <span className="text-sm text-gray-600 dark:text-gray-300">
-                    {t('cashback') || 'Cashback'}
-                  </span>
-                  <span className="text-sm font-bold text-gray-800 dark:text-white">- ₹ {discount}</span>
-                </div>
-              )}
-              <div className="border-t border-gray-300 dark:border-gray-600 my-2"></div>
-              <div className="flex justify-between">
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                  {t('paid_via_scan') || 'Paid Via Scan'}
-                </span>
-                <span className="text-sm font-medium text-gray-800 dark:text-white">
-                  {t('grand_total') || 'Grand Total'} ₹ {totalCost}
-                </span>
-              </div>
+              <MenuItem
+                icon={<MdDeleteOutline size={22} color={isDarkMode ? '#fff' : '#4a4a4a'} />}
+                text={t('account_delete')}
+                onClick={() => navigate('/delete-account', { state: { details: account } })}
+              />
+              <MenuItem
+                icon={<MdAccountCircle size={22} color={isDarkMode ? '#fff' : '#4a4a4a'} />}
+                text={t('edit_profile')}
+                onClick={() => navigate('/edit-profile', { state: { details: account } })}
+              />
             </>
-          ) : (
-            <div className="flex justify-between items-center">
-              <div className="flex items-center space-x-2">
-                <div className="bg-orange-600 w-8 h-8 rounded-full flex items-center justify-center">
-                  <FaIndianRupeeSign size={15} color="#FFFFFF" />
-                </div>
-                <p className="text-sm text-gray-800 dark:text-white">
-                  {t('to_pay') || 'To Pay'} ₹ <span className="font-bold">{totalCost}</span>
-                </p>
-              </div>
-            </div>
           )}
-        </section>
-
-        {/* Voucher Section */}
-        <section className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow mb-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-2">
-              {/* Using MdLocalOffer as a coupon/ticket icon */}
-              <MdLocalOffer size={24} className="text-gray-500" />
-              <p className="text-sm text-gray-600">
-                {t('add_coupon') || 'Add Coupon to get cashback'}
-              </p>
-            </div>
-            <button onClick={toggleVocher} className="text-gray-400">
-              <MdChevronRight size={20} />
-            </button>
-          </div>
-          {vocherModal && (
-            <div className="mt-4">
-              <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded">
-                <input
-                  type="text"
-                  value={value}
-                  onChange={(e) => setValue(e.target.value)}
-                  placeholder={t('enter_voucher') || 'Enter voucher code'}
-                  className="flex-1 p-2 text-sm text-gray-800 dark:text-white bg-transparent outline-none"
-                />
-                <button
-                  onClick={applyCoupon}
-                  disabled={!value}
-                  className={`p-2 text-sm rounded ${value ? 'bg-orange-600 text-white' : 'bg-gray-200 text-gray-500'}`}
-                >
-                  {t('apply') || 'Apply'}
-                </button>
-              </div>
-            </div>
-          )}
-        </section>
-
-        {/* Notice Section */}
-        <div className="flex items-center space-x-2 my-4">
-          <IoMdAlert size={16} className="text-gray-500" />
-          <p className="text-sm text-gray-600">
-            {t('spare_parts_excluded') || 'Spare parts are not included in this payment'}
-          </p>
+          <MenuItem
+            icon={<AiOutlineInfoCircle size={22} color={isDarkMode ? '#fff' : '#4a4a4a'} />}
+            text={t('refer_and_earn')}
+            onClick={() => navigate('/referral')}
+          />
+          <MenuItem
+            icon={<FiGlobe size={22} color={isDarkMode ? '#fff' : '#4a4a4a'} />}
+            text={t('change_language')}
+            onClick={() => navigate('/language-selector')}
+          />
+          <MenuItem
+            icon={<AiOutlineInfoCircle size={22} color={isDarkMode ? '#fff' : '#4a4a4a'} />}
+            text={t('about_cs')}
+            onClick={() => navigate('/about-cs')}
+          />
+          <MenuItem
+            icon={<MdLogout size={22} color="#FF0000" />}
+            text={t('logout')}
+            onClick={confirmLogout}
+          />
         </div>
       </div>
 
-      {/* Bottom Bar for Payment */}
-      <footer className="flex justify-between items-center p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
-        <div>
-          <p className="text-sm text-gray-600">{t('service_cost') || 'Service cost'}</p>
-          <p className="text-lg font-bold text-gray-800 dark:text-white">₹ {totalCost}</p>
-        </div>
-        <button
-          onClick={openPhonePeScanner}
-          className="bg-orange-600 text-white py-2 px-4 rounded-full"
+      {/* Logout Confirmation Modal */}
+      {logoutModalVisible && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-end"
+          onClick={closeModal}
         >
-          {t('pay_now') || 'Pay Now'}
-        </button>
-      </footer>
+          <div
+            className="w-full max-w-md bg-white dark:bg-gray-900 rounded-t-lg p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="text-lg font-bold text-red-500 mb-4">
+              {t('logout_confirmation')}
+            </p>
+            <p className="text-base text-gray-700 dark:text-gray-300 text-center mb-6">
+              {t('logout_confirmation_message')}
+            </p>
+            <button className="w-full bg-orange-500 text-white py-3 rounded mb-3" onClick={handleLogout}>
+              {t('yes_logout')}
+            </button>
+            <button className="w-full bg-gray-300 text-gray-800 py-3 rounded" onClick={closeModal}>
+              {t('cancel')}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-export default Payment; 
+export default ProfileScreen;

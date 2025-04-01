@@ -2,14 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { MdArrowBack, MdEmail } from 'react-icons/md';
-import { useTheme } from '../context/ThemeContext';
 import { useTranslation } from 'react-i18next';
 
 const AccountDelete = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
-  const { isDarkMode } = useTheme();
 
   // Form state (read-only values)
   const [fullName, setFullName] = useState('');
@@ -84,13 +82,13 @@ const AccountDelete = () => {
   };
 
   return (
-    <div className={`${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'} min-h-screen p-5`}>
+    <div className="min-h-screen p-5 bg-white text-gray-900 dark:bg-gray-900 dark:text-white">
       {/* Scrollable content */}
       <div className="overflow-y-auto">
         {/* Header */}
         <div className="flex items-center mb-6">
           <button onClick={() => navigate(-1)} className="p-2 focus:outline-none">
-            <MdArrowBack size={24} className={isDarkMode ? 'text-white' : 'text-black'} />
+            <MdArrowBack size={24} className="text-gray-900 dark:text-white" />
           </button>
           <h1 className="ml-4 flex-1 text-2xl font-bold text-center">
             {t('account_delete') || 'Account Delete'}

@@ -5,7 +5,6 @@ import axios from 'axios';
 import QuickSearch from '../Components/QuickSearch';
 import Lottie from 'lottie-react';
 import cardsLoading from '../assets/cardsLoading.json';
-// Import icons from react-icons
 import { FiSunset, FiSearch, FiAlertCircle } from 'react-icons/fi';
 import { MdNightsStay } from 'react-icons/md';
 import { FaSun, FaBell, FaQuestionCircle, FaStar, FaRegStar } from 'react-icons/fa';
@@ -34,7 +33,7 @@ function ServiceApp() {
   const width = window.innerWidth;
   const isTablet = width > 600;
 
-  // Special offers (with translations and Tailwind background classes)
+  // Special offers
   const specialOffers = useMemo(() => [
     {
       id: '1',
@@ -68,7 +67,7 @@ function ServiceApp() {
     },
   ], [isDarkMode, t]);
 
-  // Function to translate user name if needed
+  // Translate user name if needed
   const translateUserName = async (userName, targetLang) => {
     if (targetLang.toLowerCase() === 'en') return userName;
     try {
@@ -86,7 +85,7 @@ function ServiceApp() {
     return userName;
   };
 
-  // On mount, check URL parameters for encodedId
+  // Check URL params for encodedId
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const encodedId = params.get('encodedId');
@@ -130,7 +129,6 @@ function ServiceApp() {
         });
         const track = response?.data?.track || [];
         const { user, profile } = response.data;
-        console.log("Tracking response:", track);
         const targetLang = i18n.language || 'en';
         const translatedName = await translateUserName(user || response.data, targetLang);
         setName(translatedName);
@@ -143,7 +141,7 @@ function ServiceApp() {
     }
   };
 
-  // Set greeting based on current time
+  // Set greeting
   const setGreetingBasedOnTime = () => {
     const currentHour = new Date().getHours();
     let greetingMessage = t('good_day') || 'Good Day';
@@ -162,7 +160,7 @@ function ServiceApp() {
     setGreetingIcon(icon);
   };
 
-  // Navigation handlers using navigate()
+  // Navigation
   const handleNotification = () => {
     navigate('/notifications');
   };
@@ -175,29 +173,31 @@ function ServiceApp() {
     navigate('/serviceCategory', { state: { serviceObject: serviceName, id } });
   };
 
-  // Render special offers with horizontal scrolling on mobile
-  const renderSpecialOffers = () => {
-    return (
-      <div className="flex flex-nowrap overflow-x-auto whitespace-nowrap gap-4">
-        {specialOffers.map(offer => (
-          <div
-            key={offer.id}
-            className={`flex flex-row justify-between rounded-lg p-4 ${offer.bgClass} flex-shrink-0`}
-            style={{ minWidth: '14rem' }}
-          >
-            <div className="w-2/3">
-              <p className={`text-4xl font-bold ${offer.textColor}`}>{offer.title}</p>
-              <p className="text-lg font-semibold text-gray-600">{offer.subtitle}</p>
-              <p className="text-sm text-gray-500">{offer.description}</p>
-            </div>
-            <img src={offer.imageBACKENDAP} alt="Offer" className="w-36 h-36 object-contain self-end" />
+  // Render special offers
+  const renderSpecialOffers = () => (
+    <div className="flex flex-nowrap overflow-x-auto whitespace-nowrap gap-4">
+      {specialOffers.map(offer => (
+        <div
+          key={offer.id}
+          className={`flex flex-row justify-between rounded-lg p-4 ${offer.bgClass} flex-shrink-0`}
+          style={{ minWidth: '14rem' }}
+        >
+          <div className="w-2/3">
+            <p className={`text-4xl font-bold ${offer.textColor}`}>{offer.title}</p>
+            <p className="text-lg font-semibold text-gray-600">{offer.subtitle}</p>
+            <p className="text-sm text-gray-500">{offer.description}</p>
           </div>
-        ))}
-      </div>
-    );
-  };
+          <img
+            src={offer.imageBACKENDAP}
+            alt="Offer"
+            className="w-36 h-36 object-contain self-end"
+          />
+        </div>
+      ))}
+    </div>
+  );
 
-  // Render service cards
+  // Render services
   const renderServices = () => {
     if (loading) {
       return (
@@ -207,7 +207,10 @@ function ServiceApp() {
       );
     }
     return services.map(service => (
-      <div key={service.service_id} className="flex flex-row items-center gap-4 p-4 rounded-lg bg-white shadow mb-4">
+      <div
+        key={service.service_id}
+        className="flex flex-row items-center gap-4 p-4 rounded-lg bg-white shadow mb-4"
+      >
         <img
           src={service.service_urls || 'https://via.placeholder.com/100x100'}
           alt={service.service_name}
@@ -232,7 +235,7 @@ function ServiceApp() {
   const submitFeedback = async () => {
     try {
       const cs_token = localStorage.getItem('cs_token');
-      const response = await axios.post(
+      await axios.post(
         'https://backend.clicksolver.com/api/user/feedback',
         {
           rating,
@@ -243,7 +246,6 @@ function ServiceApp() {
           headers: { Authorization: `Bearer ${cs_token}` },
         }
       );
-      console.log('Feedback submitted successfully:', response.data);
     } catch (error) {
       console.error('Error submitting feedback:', error);
     } finally {
@@ -257,64 +259,70 @@ function ServiceApp() {
     setModalVisible(false);
   };
 
-  return (
-    <div className="min-h-screen bg-gray-100 p-4">
-      {/* Sticky Header: Contains header row and QuickSearch */}
-      <div className="sticky top-0 z-50 bg-gray-100">
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center">
-            <button onClick={() => navigate('/account')}>
-              {profile ? (
-                <img src={profile} alt="User" className="w-8 h-8 rounded-full" />
-              ) : (
-                <div className="w-10 h-10 rounded-full bg-gray-300 flex justify-center items-center mr-2">
-                  <p className="text-xl font-bold text-gray-800">
-                    {name?.charAt(0)?.toUpperCase() || 'U'}
-                  </p>
-                </div>
-              )}
-            </button>
-            <div className="flex flex-col ml-2">
-              <p className="text-lg italic text-gray-600">
-                {greeting} <span>{greetingIcon}</span>
-              </p>
-              <p className="text-xl font-bold text-gray-700">{name}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <button onClick={handleNotification}>
-              <FaBell size={23} className="text-gray-800" />
-            </button>
-            <button onClick={handleHelp}>
-              <FaQuestionCircle size={23} className="text-gray-800" />
-            </button>
+// In your ServiceApp.js render method
+return (
+  <div className="min-h-screen bg-gray-100 p-4">
+    {/* Sticky Header */}
+    <div className="sticky top-0 z-50 bg-gray-100">
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center">
+          <button onClick={() => navigate('/account')}>
+            {profile ? (
+              <img src={profile} alt="User" className="w-8 h-8 rounded-full" />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-gray-300 flex justify-center items-center mr-2">
+                <p className="text-xl font-bold text-gray-800">
+                  {name?.charAt(0)?.toUpperCase() || 'U'}
+                </p>
+              </div>
+            )}
+          </button>
+          <div className="flex flex-col ml-2">
+            <p className="text-lg italic text-gray-600">
+              {greeting} <span>{greetingIcon}</span>
+            </p>
+            <p className="text-xl font-bold text-gray-700">{name}</p>
           </div>
         </div>
-        <QuickSearch />
-      </div>
-
-      {/* Main Scrollable Content */}
-      <div className="overflow-y-auto" style={{ maxHeight: 'calc(100vh - 150px)' }}>
-        {/* Special Offers */}
-        <div className="mb-6">
-          <div className="flex justify-between items-center mb-2">
-            <p className="text-xl font-bold text-gray-800">{t('special_offers') || 'Special Offers'}</p>
-          </div>
-          {renderSpecialOffers()}
-        </div>
-
-        {/* Services */}
-        <div className="mb-6">
-          <div className="flex justify-between items-center mb-2">
-            <p className="text-xl font-bold text-gray-800">{t('services') || 'Services'}</p>
-          </div>
-          {renderServices()}
+        <div className="flex items-center gap-4">
+          <button onClick={handleNotification}>
+            <FaBell size={23} className="text-gray-800" />
+          </button>
+          <button onClick={handleHelp}>
+            <FaQuestionCircle size={23} className="text-gray-800" />
+          </button>
         </div>
       </div>
+      <QuickSearch />
+    </div>
 
-      {/* Tracking Message Box */}
-      {messageBoxDisplay && (
-        <div className="flex overflow-x-auto mt-4" ref={scrollViewRef}>
+    {/* Main Content with conditional bottom margin */}
+    <div className={`${messageBoxDisplay ? "mb-24" : ""}`}>
+      {/* Special Offers */}
+      <div className="mb-6">
+        <div className="flex justify-between items-center mb-2">
+          <p className="text-xl font-bold text-gray-800">
+            {t('special_offers') || 'Special Offers'}
+          </p>
+        </div>
+        {renderSpecialOffers()}
+      </div>
+
+      {/* Services */}
+      <div className="mb-6">
+        <div className="flex justify-between items-center mb-2">
+          <p className="text-xl font-bold text-gray-800">
+            {t('services') || 'Services'}
+          </p>
+        </div>
+        {renderServices()}
+      </div>
+    </div>
+
+    {/* Fixed Tracking Message Box (only appears if messageBoxDisplay is true) */}
+    {messageBoxDisplay && (
+      <div className="fixed bottom-14 left-0 right-0 z-50 p-4 bg-white shadow">
+        <div className="flex overflow-x-auto" ref={scrollViewRef}>
           {trackScreen.map((item, index) => (
             <div
               key={index}
@@ -339,15 +347,12 @@ function ServiceApp() {
               <div className="flex flex-row items-center flex-1">
                 <div className="w-12 h-12 bg-orange-500 rounded-full flex justify-center items-center">
                   {item.screen === 'Paymentscreen' ? (
-                    // For Paymentscreen, use a PayPal icon component if available
                     <i className="fab fa-paypal text-white text-xl"></i>
                   ) : item.screen === 'UserNavigation' ? (
                     <i className="fas fa-truck text-white text-xl"></i>
                   ) : item.screen === 'userwaiting' ? (
-                    // Use react-icons FiSearch for userwaiting icon
                     <FiSearch className="text-white text-xl" />
                   ) : item.screen === 'OtpVerification' ? (
-                    // Use a shield icon from react-icons (if desired, you can choose a different icon)
                     <FiAlertCircle className="text-white text-xl" />
                   ) : item.screen === 'worktimescreen' ? (
                     <i className="fas fa-hammer text-white text-xl"></i>
@@ -389,52 +394,54 @@ function ServiceApp() {
             </div>
           ))}
         </div>
-      )}
+      </div>
+    )}
 
-      {/* Rating Modal */}
-      {isModalVisible && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-end">
-          <div className="bg-white dark:bg-gray-800 rounded-t-lg p-6 w-full max-w-md">
-            <button className="self-end bg-orange-500 rounded-full p-2" onClick={closeModal}>
-              <i className="fas fa-times text-white"></i>
+    {/* Rating Modal */}
+    {isModalVisible && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-end">
+        <div className="bg-white dark:bg-gray-800 rounded-t-lg p-6 w-full max-w-md">
+          <button className="self-end bg-orange-500 rounded-full p-2" onClick={closeModal}>
+            <i className="fas fa-times text-white"></i>
+          </button>
+          <h2 className="text-xl font-medium text-gray-800 dark:text-white mt-2 text-center">
+            {t('feedback_modal_title') || 'How was the quality of your Service?'}
+          </h2>
+          <p className="text-sm text-gray-600 dark:text-gray-300 text-center mt-2">
+            {t('feedback_modal_subtitle') ||
+              'Your answer is anonymous. This helps us improve our service.'}
+          </p>
+          <div className="flex justify-center my-4">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <button key={star} onClick={() => setRating(star)} className="mx-1">
+                {star <= rating ? (
+                  <FaStar size={30} className="text-yellow-400" />
+                ) : (
+                  <FaRegStar size={30} className="text-gray-400" />
+                )}
+              </button>
+            ))}
+          </div>
+          <textarea
+            className="w-full h-20 p-2 border border-gray-300 rounded-lg dark:bg-gray-700 dark:text-white"
+            placeholder={t('feedback_placeholder') || 'Write your comment here...'}
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+          ></textarea>
+          <div className="flex justify-between mt-4">
+            <button onClick={closeModal} className="px-4 py-2 bg-gray-500 text-white rounded-lg">
+              {t('feedback_not_now') || 'Not now'}
             </button>
-            <h2 className="text-xl font-medium text-gray-800 dark:text-white mt-2 text-center">
-              {t('feedback_modal_title') || 'How was the quality of your Service?'}
-            </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-300 text-center mt-2">
-              {t('feedback_modal_subtitle') ||
-                'Your answer is anonymous. This helps us improve our service.'}
-            </p>
-            <div className="flex justify-center my-4">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <button key={star} onClick={() => setRating(star)} className="mx-1">
-                  {star <= rating ? (
-                    <FaStar size={30} className="text-yellow-400" />
-                  ) : (
-                    <FaRegStar size={30} className="text-gray-400" />
-                  )}
-                </button>
-              ))}
-            </div>
-            <textarea
-              className="w-full h-20 p-2 border border-gray-300 rounded-lg dark:bg-gray-700 dark:text-white"
-              placeholder={t('feedback_placeholder') || 'Write your comment here...'}
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-            ></textarea>
-            <div className="flex justify-between mt-4">
-              <button onClick={closeModal} className="px-4 py-2 bg-gray-500 text-white rounded-lg">
-                {t('feedback_not_now') || 'Not now'}
-              </button>
-              <button onClick={submitFeedback} className="px-4 py-2 bg-orange-500 text-white rounded-lg">
-                {t('feedback_submit') || 'Submit'}
-              </button>
-            </div>
+            <button onClick={submitFeedback} className="px-4 py-2 bg-orange-500 text-white rounded-lg">
+              {t('feedback_submit') || 'Submit'}
+            </button>
           </div>
         </div>
-      )}
-    </div>
-  );
+      </div>
+    )}
+  </div>
+);
+
 }
 
 export default ServiceApp;

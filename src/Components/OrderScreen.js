@@ -29,7 +29,7 @@ const OrderScreen = () => {
   const [errorModalVisible, setErrorModalVisible] = useState(false);
   const [errorModalContent, setErrorModalContent] = useState({ title: '', message: '' });
 
-  // Refs to prevent double-processing in quantity functions
+  // Refs
   const processingRef = useRef({});
 
   // Show error modal with title + message
@@ -92,13 +92,11 @@ const OrderScreen = () => {
     fetchOffers();
   }, []);
 
-  // 4) Adjust quantity logic with a guard to prevent double updates
+  // 4) Adjust quantity logic
   const incrementQuantity = (index) => {
     setServices((prev) => {
       const updated = [...prev];
-      console.log(`Before increment: ${updated[index].quantity}`);
       updated[index].quantity += 1;
-      console.log(`After increment: ${updated[index].quantity}`);
       updated[index].totalCost = updated[index].baseCost * updated[index].quantity;
       return updated;
     });
@@ -107,11 +105,9 @@ const OrderScreen = () => {
   const decrementQuantity = (index) => {
     setServices((prev) => {
       const updated = [...prev];
-      console.log(`Before decrement: ${updated[index].quantity}`);
       if (updated[index].quantity > 1) {
         updated[index].quantity -= 1;
       }
-      console.log(`After decrement: ${updated[index].quantity}`);
       updated[index].totalCost = updated[index].baseCost * updated[index].quantity;
       return updated;
     });
@@ -203,6 +199,15 @@ const OrderScreen = () => {
   const handleBackPress = () => {
     navigate(-1);
   };
+
+  // Render a Service Item
+  const renderServiceItem = (item, index) => (
+    <div key={index} className="flex justify-between items-center py-1">
+      <p className="text-sm text-gray-800 dark:text-gray-100 w-24">
+        {t(`singleService_${item.main_service_id}`) || item.serviceName}
+      </p>
+    </div>
+  );
 
   return (
     <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}`}>

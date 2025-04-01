@@ -1,17 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { useTheme } from '../context/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import { IoArrowBack, IoMailOutline, IoCall } from 'react-icons/io5';
 
 const HelpScreen = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { isDarkMode } = useTheme();
   const [loadingCall, setLoadingCall] = useState(false);
 
-  // Define the steps with translated texts
+  // Define the steps with translated texts.
   const steps = [
     {
       number: '1',
@@ -45,17 +42,16 @@ const HelpScreen = () => {
     },
   ];
 
-  // Handle email action
+  // Handle email action.
   const handleEmailPress = () => {
     window.open('mailto:customer.support@clicksolver.com', '_self') ||
       alert(t('unable_to_open_mail_app') || 'Unable to open mail app');
   };
 
-  // Handle call action
+  // Handle call action.
   const handleCallPress = async () => {
     setLoadingCall(true);
     try {
-      // You can replace this with an axios call if needed
       const phoneNumber = "7981793632";
       if (phoneNumber) {
         window.open(`tel:${phoneNumber}`, '_self') ||
@@ -71,13 +67,13 @@ const HelpScreen = () => {
   };
 
   return (
-    <div className={`min-h-screen flex flex-col ${isDarkMode ? 'bg-gray-900' : 'bg-gray-100'}`}>
+    <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900">
       {/* Header */}
-      <div className={`flex items-center justify-between px-4 py-3 ${isDarkMode ? 'bg-gray-900' : 'bg-white'} shadow`}>
+      <div className="flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-900 shadow">
         <button onClick={() => navigate(-1)} className="focus:outline-none">
-          <IoArrowBack size={24} className={isDarkMode ? 'text-white' : 'text-gray-900'} />
+          <IoArrowBack size={24} className="text-gray-900 dark:text-white" />
         </button>
-        <h2 className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
           {t('help_support') || 'Help & Support'}
         </h2>
         <button onClick={handleEmailPress} className="focus:outline-none">
@@ -87,7 +83,7 @@ const HelpScreen = () => {
 
       {/* Steps Section */}
       <div className="flex-1 overflow-y-auto px-4 py-6">
-        <p className={`text-center mb-6 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} font-medium`}>
+        <p className="text-center mb-6 font-medium text-gray-600 dark:text-gray-300">
           {t('follow_steps') || 'Follow these simple steps to get started'}
         </p>
         {steps.map((step, index) => (
@@ -96,16 +92,16 @@ const HelpScreen = () => {
               <span className="text-white font-semibold text-lg">{step.number}</span>
             </div>
             <div className="flex-1">
-              <p className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{step.title}</p>
-              <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{step.description}</p>
+              <p className="font-medium text-gray-900 dark:text-white">{step.title}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-300">{step.description}</p>
             </div>
           </div>
         ))}
 
-        {/* CTA Button */}
+        {/* Call-To-Action Button */}
         <button 
           onClick={() => navigate('/', { replace: true })}
-          className="w-full rounded-full focus:outline-none mt-8"
+          className="w-full rounded-full mt-8 focus:outline-none"
         >
           <div className="py-4 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 shadow-lg">
             <span className="text-white font-semibold text-center block">

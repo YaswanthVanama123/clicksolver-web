@@ -22,7 +22,7 @@ const MyReferrals = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-gray-900">
       {/* Scrollable container with purple background */}
       <div className="bg-[#7C4DFF] pb-10">
         {/* Header Section */}
@@ -35,7 +35,7 @@ const MyReferrals = () => {
 
         {/* Top Section */}
         <div className="mt-4 px-4 flex flex-col items-center">
-          <div className="w-20 h-20 bg-white rounded-[16px] mb-4"></div>
+          <div className="w-20 h-20 bg-white dark:bg-gray-800 rounded-[16px] mb-4"></div>
           <h2 className="text-2xl font-bold text-white mb-1">Invite your friends</h2>
           <p className="text-sm text-white text-center">
             ...to the cool new way of managing money!
@@ -43,9 +43,11 @@ const MyReferrals = () => {
         </div>
 
         {/* How It Works Section */}
-        <div className="mt-6 pt-6 px-4 bg-white rounded-t-[20px]">
+        <div className="mt-6 pt-6 px-4 bg-white dark:bg-gray-800 rounded-t-[20px]">
           <div className="flex flex-row justify-between items-center mb-4">
-            <span className="text-base font-semibold text-[#555555]">How it works</span>
+            <span className="text-base font-semibold text-[#555555] dark:text-gray-300">
+              How it works
+            </span>
             <button className="text-sm font-medium text-[#7C4DFF] focus:outline-none">
               View TnCs
             </button>
@@ -56,7 +58,9 @@ const MyReferrals = () => {
                 <div className="w-8 h-8 bg-[#7C4DFF] rounded-full mr-3 flex items-center justify-center">
                   <span className="text-white font-semibold text-lg">{index + 1}</span>
                 </div>
-                <p className="flex-1 text-sm text-[#555555]">{step}</p>
+                <p className="flex-1 text-sm text-[#555555] dark:text-gray-300">
+                  {step}
+                </p>
               </div>
             ))}
           </div>
@@ -68,25 +72,29 @@ const MyReferrals = () => {
             <span className="text-[#7C4DFF] font-semibold">Your Referrals</span>
           </button>
           <button className="flex-1 py-3 focus:outline-none">
-            <span className="text-[#999999] font-medium">Invite Contacts</span>
+            <span className="text-[#999999] font-medium dark:text-gray-400">
+              Invite Contacts
+            </span>
           </button>
         </div>
 
         {/* Referral Item */}
-        <div className="flex flex-row items-center mt-3 px-4 py-2 bg-[#F8F8F8] rounded-lg">
+        <div className="flex flex-row items-center mt-3 px-4 py-2 bg-[#F8F8F8] dark:bg-gray-800 rounded-lg">
           <div className="w-9 h-9 rounded-full bg-[#7C4DFF] flex items-center justify-center mr-3">
             <span className="text-white font-semibold">AT</span>
           </div>
-          <p className="text-base text-[#555555]">Alikana Teja</p>
+          <p className="text-base text-[#555555] dark:text-gray-300">
+            Alikana Teja
+          </p>
         </div>
 
         {/* Share Code Section */}
         <div className="flex flex-row items-center mt-6 px-4">
-          <p className="text-base text-[#555555] flex-1">
-            Share your code: <span className="font-bold text-[#555555]">V87LCFQLT8</span>
+          <p className="text-base text-[#555555] dark:text-gray-300 flex-1">
+            Share your code: <span className="font-bold text-[#555555] dark:text-gray-300">V87LCFQLT8</span>
           </p>
-          <button 
-            onClick={handleCopyCode} 
+          <button
+            onClick={handleCopyCode}
             className="w-6 h-6 bg-[#7C4DFF] rounded-md ml-2 focus:outline-none"
           >
             {/* Optionally add a "Copy" icon here */}
@@ -109,7 +117,7 @@ const MyReferrals = () => {
           </button>
           <button
             onClick={handleInviteFriends}
-            className="flex-1 py-3 bg-[#555555] rounded-lg flex items-center justify-center focus:outline-none"
+            className="flex-1 py-3 bg-[#555555] dark:bg-gray-700 rounded-lg flex items-center justify-center focus:outline-none"
           >
             <span className="text-white font-semibold">Invite Friends</span>
           </button>
