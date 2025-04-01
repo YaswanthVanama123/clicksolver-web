@@ -117,47 +117,42 @@ const UserLocation = () => {
   );
 
   // Reverse geocode via Ola Maps API
-  const fetchAndSetPlaceDetails = useCallback(
-    async (latitude, longitude) => {
-      const apiKey = 'q0k6sOfYNxdt3bGvqF6W1yvANHeVtrsu9T5KW9a4';
-      const url = `https://api.olamaps.io/places/v1/reverse-geocode?latlng=${latitude},${longitude}&api_key=${apiKey}`;
-      try {
-        const response = await axios.get(url, {
-          headers: { 'X-Request-Id': `req-${Date.now()}` },
-        });
-        if (response.data && response.data.results && response.data.results.length > 0) {
-          const place = response.data.results[0];
-          const addressComponents = place.address_components;
-          const fetchedPincode =
-            addressComponents.find(comp => comp.types.includes('postal_code'))?.long_name || '';
-          let fetchedCity =
-            addressComponents.find(comp => comp.types.includes('locality'))?.long_name || '';
-          if (!fetchedCity) {
-            fetchedCity =
-              addressComponents.find(comp => comp.types.includes('administrative_area_level_3'))?.long_name || '';
-          }
-          if (!fetchedCity) {
-            fetchedCity =
-              addressComponents.find(comp => comp.types.includes('administrative_area_level_2'))?.long_name || '';
-          }
-          const fetchedArea = place.formatted_address || '';
-          console.log('Extracted Location Details:', {
-            city: fetchedCity,
-            area: fetchedArea,
-            pincode: fetchedPincode,
-          });
-          setCity(fetchedCity);
-          setArea(fetchedArea);
-          setPincode(fetchedPincode);
-        } else {
-          console.warn(t('no_address_found') || 'No address details found.');
-        }
-      } catch (error) {
-        console.error(t('failed_to_fetch_place_details') || 'Failed to fetch place details:', error);
+// UserLocation.js - Corrected Version
+const fetchAndSetPlaceDetails = useCallback(async (latitude, longitude) => {
+  const apiKey = 'q0k6sOfYNxdt3bGvqF6W1yvANHeVtrsu9T5KW9a4';
+  const url = `https://api.olamaps.io/places/v1/reverse-geocode?latlng=${latitude},${longitude}&api_key=${apiKey}`;
+  try {
+    const response = await axios.get(url, {
+      headers: { 'X-Request-Id': `req-${Date.now()}` },
+    });
+    if (response.data && response.data.results && response.data.results.length > 0) {
+      const place = response.data.results[0];
+      const addressComponents = place.address_components;
+      const fetchedPincode =
+        addressComponents.find(comp => comp.types.includes('postal_code'))?.long_name || '';
+      let fetchedCity =
+        addressComponents.find(comp => comp.types.includes('locality'))?.long_name || '';
+      if (!fetchedCity) {
+        fetchedCity =
+          addressComponents.find(comp => comp.types.includes('administrative_area_level_3'))?.long_name || '';
       }
-    },
-    [t]
-  );
+      if (!fetchedCity) {
+        fetchedCity =
+          addressComponents.find(comp => comp.types.includes('administrative_area_level_2'))?.long_name || '';
+      }
+      const fetchedArea = place.formatted_address || '';
+      console.log('Extracted Location Details:', { city: fetchedCity, area: fetchedArea, pincode: fetchedPincode });
+      setCity(fetchedCity);
+      setArea(fetchedArea);
+      setPincode(fetchedPincode);
+    } else {
+      console.warn(t('no_address_found') || 'No address details found.');
+    }
+  } catch (error) {
+    console.error(t('failed_to_fetch_place_details') || 'Failed to fetch place details:', error);
+  }
+}, [t]);
+
 
   // Get user's current location via browser geolocation
   useEffect(() => {
@@ -474,7 +469,7 @@ const UserLocation = () => {
       </div>
 
       {/* Map Container */}
-      <div className="w-full h-[75vh]">
+      <div className="w-full h-[70vh]">
         <div ref={mapContainerRef} className="w-full h-full" />
         {locationLoading && (
           <div
