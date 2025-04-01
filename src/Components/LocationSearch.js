@@ -7,7 +7,6 @@ import { MdLocationOn } from 'react-icons/md';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../context/ThemeContext';
 
-// Set your Ola Maps Places API key (for autocomplete)
 const PLACES_API_KEY = 'iN1RT7PQ41Z0DVxin6jlf7xZbmbIZPtb9CyNwtlT';
 
 const LocationSearch = () => {
@@ -16,32 +15,28 @@ const LocationSearch = () => {
   const locationRoute = useLocation();
   const { serviceName, savings, tipAmount, offer } = locationRoute.state || {};
 
-  // Local state variables
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [noResults, setNoResults] = useState(false);
   const [serviceArray, setServiceArray] = useState([]);
-  
-  // Retrieve dark mode state from context
+
   const { isDarkMode } = useTheme();
-  
-  // Ref for the search input
   const inputRef = useRef(null);
 
-  // Focus the text input on mount
+  // Focus the input on mount.
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
 
-  // If we have serviceName, store it locally.
+  // Store serviceName if available.
   useEffect(() => {
     if (serviceName) {
       setServiceArray(serviceName);
     }
   }, [serviceName]);
 
-  // Fetch suggestions from Ola Maps autocomplete API
+  // Fetch suggestions from the Ola Maps autocomplete API.
   const fetchSuggestions = useCallback(async () => {
     if (query.trim().length < 2) {
       setSuggestions([]);
@@ -78,7 +73,7 @@ const LocationSearch = () => {
     }
   }, [query]);
 
-  // Debounce autocomplete: fetch suggestions after 300ms delay.
+  // Debounce the fetch for 300ms.
   useEffect(() => {
     const delaySearch = setTimeout(() => {
       fetchSuggestions();
@@ -86,7 +81,7 @@ const LocationSearch = () => {
     return () => clearTimeout(delaySearch);
   }, [query, fetchSuggestions]);
 
-  // Navigate back to UserLocation, passing route params (plus extra suggestion if any)
+  // Navigate back to user location screen.
   const goBackToUserLocation = useCallback(
     (extraParams = {}) => {
       navigate('/user-location', {
@@ -102,7 +97,7 @@ const LocationSearch = () => {
     [navigate, serviceName, savings, tipAmount, offer]
   );
 
-  // When a suggestion is pressed, update the query and navigate back
+  // When a suggestion is pressed, update the query and navigate back.
   const handleSuggestionPress = useCallback(
     (item) => {
       setQuery(item.title);
@@ -112,46 +107,46 @@ const LocationSearch = () => {
     [goBackToUserLocation]
   );
 
-  // Render each suggestion as a list item
+  // Render a suggestion item.
   const renderItem = useCallback(
     ({ item }) => (
       <div
-        className="flex items-center p-3 border-b border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
+        className={`flex items-center p-3 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} cursor-pointer hover:${isDarkMode ? 'bg-gray-600' : 'bg-gray-100'}`}
         onClick={() => handleSuggestionPress(item)}
       >
         <div className="mr-3">
-          <MdLocationOn size={24} className="text-gray-600 dark:text-gray-400" />
+          <MdLocationOn size={24} className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`} />
         </div>
         <div className="flex-1">
-          <p className="text-base font-semibold text-gray-800 dark:text-gray-100">{item.title}</p>
-          <p className="text-sm text-gray-500 dark:text-gray-300">{item.address}</p>
+          <p className={`text-base font-semibold ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>{item.title}</p>
+          <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>{item.address}</p>
         </div>
         <div>
-          <AiOutlineClose size={18} className="text-gray-400 dark:text-gray-300" />
+          <AiOutlineClose size={18} className={`${isDarkMode ? 'text-gray-300' : 'text-gray-400'}`} />
         </div>
       </div>
     ),
-    [handleSuggestionPress]
+    [handleSuggestionPress, isDarkMode]
   );
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
+    <div className={`${isDarkMode ? 'bg-gray-900' : 'bg-white'} min-h-screen`}>
       {/* Search Bar */}
-      <div className="flex items-center p-4 border-b border-gray-200 dark:border-gray-700">
+      <div className={`flex items-center p-4 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
         <button onClick={goBackToUserLocation} className="mr-4">
-          <FaArrowLeft size={18} className="text-gray-600 dark:text-white" />
+          <FaArrowLeft size={18} className={`${isDarkMode ? 'text-white' : 'text-gray-600'}`} />
         </button>
         <input
           ref={inputRef}
           type="text"
-          className="flex-1 p-2 border rounded-md outline-none bg-transparent text-gray-800 dark:text-gray-100"
+          className={`flex-1 p-2 border rounded-md outline-none bg-transparent ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}
           placeholder={t('search_placeholder') || 'Search for a location...'}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
         {query.length > 0 && (
           <button onClick={() => setQuery('')} className="ml-2">
-            <AiOutlineClose size={18} className="text-gray-400 dark:text-gray-300" />
+            <AiOutlineClose size={18} className={`${isDarkMode ? 'text-gray-300' : 'text-gray-400'}`} />
           </button>
         )}
       </div>
@@ -163,13 +158,13 @@ const LocationSearch = () => {
         </div>
       ) : noResults ? (
         <div className="flex justify-center items-center mt-6">
-          <p className="text-gray-600 dark:text-gray-300">
+          <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
             {t('no_locations_found') || 'No locations found'}
           </p>
         </div>
       ) : (
         <div className="mt-2">
-          <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+          <ul className={`${isDarkMode ? 'divide-gray-700' : 'divide-gray-200'} divide-y`}>
             {suggestions.map((item) => (
               <li key={item.id}>{renderItem({ item })}</li>
             ))}

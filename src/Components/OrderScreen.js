@@ -1,4 +1,3 @@
-// OrderScreen.js
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -78,7 +77,6 @@ const OrderScreen = () => {
       try {
         const token = localStorage.getItem('cs_token');
         if (!token) return;
-
         const response = await axios.get(
           'https://backend.clicksolver.com/api/user/offers',
           { headers: { Authorization: `Bearer ${token}` } }
@@ -101,7 +99,7 @@ const OrderScreen = () => {
       return updated;
     });
   };
-  
+
   const decrementQuantity = (index) => {
     setServices((prev) => {
       const updated = [...prev];
@@ -124,14 +122,12 @@ const OrderScreen = () => {
         );
         return;
       }
-
       const response = await axios.post(
         'https://backend.clicksolver.com/api/user/validate-offer',
         { offer_code: offerCode, totalAmount: currentTotal },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       const { valid, discountAmount, newTotal, error } = response.data;
-
       if (!valid) {
         showErrorModal(
           t('offer_not_valid') || 'Offer Not Valid',
@@ -142,7 +138,6 @@ const OrderScreen = () => {
         setSavings(0);
         return;
       }
-
       setDiscountedPrice(newTotal);
       setSavings(discountAmount);
       setAppliedOffer(offerCode);
@@ -203,7 +198,7 @@ const OrderScreen = () => {
   // Render a Service Item
   const renderServiceItem = (item, index) => (
     <div key={index} className="flex justify-between items-center py-1">
-      <p className="text-sm text-gray-800 dark:text-gray-100 w-24">
+      <p className={`text-sm ${isDarkMode ? 'text-gray-100' : 'text-gray-800'} w-24`}>
         {t(`singleService_${item.main_service_id}`) || item.serviceName}
       </p>
     </div>
@@ -212,7 +207,7 @@ const OrderScreen = () => {
   return (
     <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}`}>
       {/* Header */}
-      <div className="flex items-center px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+      <div className={`flex items-center px-4 py-3 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
         <button onClick={handleBackPress} className="mr-4">
           <FaArrowLeft size={24} color={isDarkMode ? '#fff' : '#333'} />
         </button>
@@ -225,7 +220,7 @@ const OrderScreen = () => {
       <div className="overflow-y-auto pb-20">
         {/* Cart Items */}
         {services.map((service, index) => (
-          <div key={service.main_service_id || index} className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center">
+          <div key={service.main_service_id || index} className={`px-4 py-3 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} flex items-center`}>
             <img
               src={service.imageUrl}
               alt="Item"
@@ -243,14 +238,14 @@ const OrderScreen = () => {
               <div className="flex items-center">
                 <button
                   onClick={() => decrementQuantity(index)}
-                  className="bg-gray-200 dark:bg-gray-700 rounded-md px-2 py-1 text-lg font-bold"
+                  className={`bg-gray-200 ${isDarkMode ? 'dark:bg-gray-700' : ''} rounded-md px-2 py-1 text-lg font-bold`}
                 >
                   -
                 </button>
                 <span className="mx-2 font-semibold">{service.quantity}</span>
                 <button
                   onClick={() => incrementQuantity(index)}
-                  className="bg-gray-200 dark:bg-gray-700 rounded-md px-2 py-1 text-lg font-bold"
+                  className={`bg-gray-200 ${isDarkMode ? 'dark:bg-gray-700' : ''} rounded-md px-2 py-1 text-lg font-bold`}
                 >
                   +
                 </button>
@@ -267,10 +262,10 @@ const OrderScreen = () => {
         </div>
 
         {/* Section Divider */}
-        <div className="h-2 bg-gray-100 dark:bg-gray-800 w-full"></div>
+        <div className={`h-2 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'} w-full`}></div>
 
         {/* Coupon/Offer Section */}
-        <div className="px-4 py-3 flex justify-between items-center bg-white dark:bg-gray-900">
+        <div className={`px-4 py-3 flex justify-between items-center ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`}>
           <div className="flex items-center">
             <div className="bg-orange-600 p-1 rounded-sm mr-2">
               <MdLocalOffer size={20} color="#fff" />
@@ -286,13 +281,13 @@ const OrderScreen = () => {
           </button>
         </div>
         {showCoupons && (
-          <div className="px-4 py-3 bg-white dark:bg-gray-900">
+          <div className={`px-4 py-3 ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`}>
             {offers.length > 0 ? (
               offers.map((offer) => (
                 <div key={offer.offer_code} className="flex items-center mt-2">
                   <div className="flex-1">
-                    <p className="text-sm font-semibold text-gray-800 dark:text-white">{offer.title}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{offer.description}</p>
+                    <p className={`text-sm font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{offer.title}</p>
+                    <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{offer.description}</p>
                   </div>
                   {appliedOffer === offer.offer_code ? (
                     <button
@@ -313,17 +308,17 @@ const OrderScreen = () => {
                 </div>
               ))
             ) : (
-              <p className="text-xs text-gray-500 dark:text-gray-400">{t('no_offers') || 'No offers available at the moment.'}</p>
+              <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{t('no_offers') || 'No offers available at the moment.'}</p>
             )}
           </div>
         )}
 
         {/* Section Divider */}
-        <div className="h-2 bg-gray-100 dark:bg-gray-800 w-full"></div>
+        <div className={`h-2 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'} w-full`}></div>
 
         {/* Tip Section */}
-        <div className="px-4 py-3 bg-white dark:bg-gray-900">
-          <p className="text-base font-bold text-gray-800 dark:text-white mb-2">{t('add_tip') || 'Add a tip to thank the professional'}</p>
+        <div className={`px-4 py-3 ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`}>
+          <p className={`text-base font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'} mb-2`}>{t('add_tip') || 'Add a tip to thank the professional'}</p>
           <div className="flex flex-wrap">
             {[50, 75, 100, 150, 200].map((amount) => (
               <button
@@ -335,8 +330,8 @@ const OrderScreen = () => {
                     setSelectedTip(amount);
                   }
                 }}
-                className={`bg-gray-200 dark:bg-gray-700 rounded-md px-3 py-1 mr-2 mb-2 text-sm font-semibold ${
-                  selectedTip === amount ? 'bg-orange-600 text-white' : 'text-gray-800'
+                className={`rounded-md px-3 py-1 mr-2 mb-2 text-sm font-semibold ${
+                  selectedTip === amount ? 'bg-orange-600 text-white' : (isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-200 text-gray-800')
                 }`}
               >
                 ₹{amount}
@@ -346,36 +341,36 @@ const OrderScreen = () => {
         </div>
 
         {/* Section Divider */}
-        <div className="h-2 bg-gray-100 dark:bg-gray-800 w-full"></div>
+        <div className={`h-2 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'} w-full`}></div>
 
         {/* Payment Summary */}
-        <div className="px-4 py-3 bg-white dark:bg-gray-900">
-          <p className="text-base font-bold text-gray-800 dark:text-white mb-2">{t('payment_summary') || 'Payment summary'}</p>
+        <div className={`px-4 py-3 ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`}>
+          <p className={`text-base font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'} mb-2`}>{t('payment_summary') || 'Payment summary'}</p>
           <div className="flex justify-between mb-1">
-            <span className="text-xs text-gray-500">{t('item_total') || 'Item total'}</span>
+            <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{t('item_total') || 'Item total'}</span>
             {appliedOffer && savings > 0 ? (
-              <span className="text-xs font-semibold text-gray-800 dark:text-white">
+              <span className={`text-xs font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
                 <span className="line-through text-gray-500">₹{totalPrice}</span> ₹{finalPrice}
               </span>
             ) : (
-              <span className="text-xs font-semibold text-gray-800 dark:text-white">₹{totalPrice}</span>
+              <span className={`text-xs font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>₹{totalPrice}</span>
             )}
           </div>
           <div className="flex justify-between mb-1">
-            <span className="text-xs text-gray-500">{t('taxes_and_fee') || 'Taxes and Fee'}</span>
-            <span className="text-xs font-semibold text-gray-800 dark:text-white">₹0</span>
+            <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{t('taxes_and_fee') || 'Taxes and Fee'}</span>
+            <span className={`text-xs font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>₹0</span>
           </div>
           <div className="flex justify-between mb-1">
-            <span className="text-xs text-gray-500">{t('tip') || 'Tip'}</span>
-            <span className="text-xs font-semibold text-gray-800 dark:text-white">₹{selectedTip}</span>
+            <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{t('tip') || 'Tip'}</span>
+            <span className={`text-xs font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>₹{selectedTip}</span>
           </div>
           <div className="flex justify-between mb-1">
-            <span className="text-xs text-gray-500">{t('total_amount') || 'Total amount'}</span>
-            <span className="text-xs font-semibold text-gray-800 dark:text-white">₹{finalPriceWithTip}</span>
+            <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{t('total_amount') || 'Total amount'}</span>
+            <span className={`text-xs font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>₹{finalPriceWithTip}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-xs text-gray-500">{t('amount_to_pay') || 'Amount to pay'}</span>
-            <span className="text-xs font-semibold text-gray-800 dark:text-white">₹{finalPriceWithTip}</span>
+            <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{t('amount_to_pay') || 'Amount to pay'}</span>
+            <span className={`text-xs font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>₹{finalPriceWithTip}</span>
           </div>
           {appliedOffer && savings > 0 && (
             <p className="mt-2 text-xs text-green-600 font-semibold">
@@ -385,19 +380,19 @@ const OrderScreen = () => {
         </div>
 
         {/* Section Divider */}
-        <div className="h-2 bg-gray-100 dark:bg-gray-800 w-full"></div>
+        <div className={`h-2 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'} w-full`}></div>
 
         {/* Address Section */}
-        <div className="px-4 py-3 bg-white dark:bg-gray-900">
-          <p className="text-base font-semibold text-gray-800 dark:text-white">
+        <div className={`px-4 py-3 ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`}>
+          <p className={`text-base font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
             {t('address_question') || 'Where would you like us to send your skilled worker?'}
           </p>
         </div>
       </div>
 
       {/* Bottom Bar */}
-      <div className="fixed bottom-0 left-0 right-0 flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
-        <span className="text-lg font-bold text-gray-800 dark:text-white">₹{finalPriceWithTip}</span>
+      <div className={`fixed bottom-0 left-0 right-0 flex items-center justify-between px-4 py-3 ${isDarkMode ? 'bg-gray-900' : 'bg-white'} border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+        <span className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>₹{finalPriceWithTip}</span>
         <button onClick={addAddress} className="bg-orange-600 px-5 py-2 rounded-md">
           <span className="text-white text-sm font-semibold">{t('add_address') || 'Add Address'}</span>
         </button>
@@ -406,9 +401,9 @@ const OrderScreen = () => {
       {/* Error Modal */}
       {errorModalVisible && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white dark:bg-gray-800 p-5 rounded-md w-4/5 max-w-sm text-center">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">{errorModalContent.title}</h3>
-            <p className="text-sm text-gray-700 dark:text-gray-300 mb-4">{errorModalContent.message}</p>
+          <div className={`p-5 rounded-md w-4/5 max-w-sm text-center ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
+            <h3 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'} mb-2`}>{errorModalContent.title}</h3>
+            <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-4`}>{errorModalContent.message}</p>
             <button onClick={() => setErrorModalVisible(false)} className="bg-orange-600 px-4 py-2 rounded-md">
               <span className="text-white text-sm font-semibold">{t('ok') || 'OK'}</span>
             </button>

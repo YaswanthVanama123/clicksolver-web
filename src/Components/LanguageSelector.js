@@ -15,9 +15,7 @@ const LanguageSelector = () => {
   ];
 
   const { t } = useTranslation();
-  // You can still use the context if needed to toggle dark mode externally,
-  // but Tailwind’s dark mode classes work automatically when the dark class is set.
-  const { isDarkMode } = useTheme(); 
+  const { isDarkMode } = useTheme();
   const navigate = useNavigate();
   const [selectedLanguage, setSelectedLanguage] = useState(null);
 
@@ -56,24 +54,24 @@ const LanguageSelector = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-6">
+    <div className={`min-h-screen p-6 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-100'}`}>
       {/* Header */}
-      <h1 className="text-2xl font-bold text-black dark:text-white mb-6">
+      <h1 className={`text-2xl font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-black'}`}>
         {t('Languages')}
       </h1>
 
       {/* Selected Language */}
-      <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">
+      <h2 className={`text-lg font-semibold mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
         {t('Selected Language')}
       </h2>
-      <div className="p-4 rounded-lg mb-6 border bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700">
-        <p className="text-lg font-medium text-black dark:text-white">
+      <div className={`p-4 rounded-lg mb-6 border ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-300'}`}>
+        <p className={`text-lg font-medium ${isDarkMode ? 'text-white' : 'text-black'}`}>
           {getSelectedLanguageLabel()}
         </p>
       </div>
 
       {/* All Languages */}
-      <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">
+      <h2 className={`text-lg font-semibold mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
         {t('All Languages')}
       </h2>
       <div className="space-y-3">
@@ -81,9 +79,9 @@ const LanguageSelector = () => {
           <button
             key={lang.code}
             onClick={() => onSelectLanguage(lang)}
-            className="w-full flex justify-between items-center p-4 rounded-lg border bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700"
+            className={`w-full flex justify-between items-center p-4 rounded-lg border ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-300'}`}
           >
-            <span className="text-lg text-black dark:text-white">
+            <span className={`text-lg ${isDarkMode ? 'text-white' : 'text-black'}`}>
               {lang.label}
             </span>
             {selectedLanguage === lang.code ? (

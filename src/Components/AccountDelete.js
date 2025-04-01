@@ -3,11 +3,13 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { MdArrowBack, MdEmail } from 'react-icons/md';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '../context/ThemeContext';
 
 const AccountDelete = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
+  const { isDarkMode } = useTheme();
 
   // Form state (read-only values)
   const [fullName, setFullName] = useState('');
@@ -82,15 +84,21 @@ const AccountDelete = () => {
   };
 
   return (
-    <div className="min-h-screen p-5 bg-white text-gray-900 dark:bg-gray-900 dark:text-white">
+    <div
+      className={`min-h-screen p-5 ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}`}
+    >
       {/* Scrollable content */}
       <div className="overflow-y-auto">
         {/* Header */}
         <div className="flex items-center mb-6">
           <button onClick={() => navigate(-1)} className="p-2 focus:outline-none">
-            <MdArrowBack size={24} className="text-gray-900 dark:text-white" />
+            <MdArrowBack size={24} className={isDarkMode ? 'text-white' : 'text-gray-900'} />
           </button>
-          <h1 className="ml-4 flex-1 text-2xl font-bold text-center">
+          <h1
+            className={`ml-4 flex-1 text-2xl font-bold text-center ${
+              isDarkMode ? 'text-white' : 'text-gray-900'
+            }`}
+          >
             {t('account_delete') || 'Account Delete'}
           </h1>
         </div>
@@ -99,50 +107,86 @@ const AccountDelete = () => {
         <div className="space-y-6">
           {/* Full Name */}
           <div>
-            <label className="block text-base font-medium text-gray-600 dark:text-gray-300">
+            <label
+              className={`block text-base font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}
+            >
               {t('full_name') || 'Full Name'}
             </label>
             <input
               type="text"
               value={fullName}
               readOnly
-              className="w-full h-12 px-3 border border-gray-300 dark:border-gray-600 rounded bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white"
+              className={
+                isDarkMode
+                  ? "w-full h-12 px-3 border border-gray-600 rounded bg-gray-800 text-white"
+                  : "w-full h-12 px-3 border border-gray-300 rounded bg-gray-100 text-gray-900"
+              }
             />
           </div>
 
           {/* Email Address */}
           <div>
-            <label className="block text-base font-medium text-gray-600 dark:text-gray-300">
+            <label
+              className={`block text-base font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}
+            >
               {t('email_address') || 'Email Address'}
             </label>
-            <div className="flex items-center w-full h-12 px-3 border border-gray-300 dark:border-gray-600 rounded bg-gray-100 dark:bg-gray-800">
+            <div
+              className={
+                isDarkMode
+                  ? "flex items-center w-full h-12 px-3 border border-gray-600 rounded bg-gray-800"
+                  : "flex items-center w-full h-12 px-3 border border-gray-300 rounded bg-gray-100"
+              }
+            >
               <MdEmail size={20} className="text-gray-500" />
               <input
                 type="email"
                 value={email}
                 readOnly
-                className="flex-1 ml-3 bg-transparent focus:outline-none text-gray-900 dark:text-white"
+                className={
+                  isDarkMode
+                    ? "flex-1 ml-3 bg-transparent focus:outline-none text-white"
+                    : "flex-1 ml-3 bg-transparent focus:outline-none text-gray-900"
+                }
               />
             </div>
           </div>
 
           {/* Phone Number */}
           <div>
-            <label className="block text-base font-medium text-gray-600 dark:text-gray-300">
+            <label
+              className={`block text-base font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}
+            >
               {t('phone_number') || 'Phone Number'}
             </label>
-            <div className="flex items-center w-full h-12 px-3 border border-gray-300 dark:border-gray-600 rounded bg-gray-100 dark:bg-gray-800">
+            <div
+              className={
+                isDarkMode
+                  ? "flex items-center w-full h-12 px-3 border border-gray-600 rounded bg-gray-800"
+                  : "flex items-center w-full h-12 px-3 border border-gray-300 rounded bg-gray-100"
+              }
+            >
               <img
                 src="https://upload.wikimedia.org/wikipedia/en/thumb/4/41/Flag_of_India.svg/1200px-Flag_of_India.svg.png"
                 alt="Flag"
                 className="w-6 h-4 mr-2"
               />
-              <span className="mr-2 text-base font-medium text-gray-900 dark:text-white">+ 91</span>
+              <span
+                className={`mr-2 text-base font-medium ${
+                  isDarkMode ? 'text-white' : 'text-gray-900'
+                }`}
+              >
+                + 91
+              </span>
               <input
                 type="text"
                 value={phone}
                 readOnly
-                className="flex-1 bg-transparent focus:outline-none text-gray-900 dark:text-white"
+                className={
+                  isDarkMode
+                    ? "flex-1 bg-transparent focus:outline-none text-white"
+                    : "flex-1 bg-transparent focus:outline-none text-gray-900"
+                }
               />
             </div>
           </div>
@@ -171,15 +215,22 @@ const AccountDelete = () => {
           onClick={() => setModalVisible(false)}
         >
           <div
-            className="w-full bg-white dark:bg-gray-800 p-6 rounded-t-lg"
+            className={isDarkMode ? "w-full bg-gray-800 p-6 rounded-t-lg" : "w-full bg-white p-6 rounded-t-lg"}
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-xl font-semibold text-center text-gray-900 dark:text-white mb-4">
+            <h2
+              className={`text-xl font-semibold text-center mb-4 ${
+                isDarkMode ? 'text-white' : 'text-gray-900'
+              }`}
+            >
               {t('confirm_delete') || 'Confirm Delete'}
             </h2>
-            <p className="text-base text-center text-gray-700 dark:text-gray-300 mb-6">
-              {t('confirm_delete_message') ||
-                'Are you sure you want to delete your profile?'}
+            <p
+              className={`text-base text-center mb-6 ${
+                isDarkMode ? 'text-gray-300' : 'text-gray-700'
+              }`}
+            >
+              {t('confirm_delete_message') || 'Are you sure you want to delete your profile?'}
             </p>
             <div className="flex space-x-4">
               <button

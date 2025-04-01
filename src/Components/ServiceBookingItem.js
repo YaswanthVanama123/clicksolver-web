@@ -8,13 +8,11 @@ import { FaArrowLeftLong } from 'react-icons/fa6';
 import { MdCircle } from 'react-icons/md';
 import { FaAngleRight } from 'react-icons/fa';
 
-
 const ServiceBookingItem = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const tracking_id = location.state?.tracking_id;
   const { t } = useTranslation();
-  
   const { isDarkMode } = useTheme();
 
   const [details, setDetails] = useState({});
@@ -60,16 +58,12 @@ const ServiceBookingItem = () => {
 
   useEffect(() => {
     const fetchBookingDetails = async () => {
-     
       try {
-        console.log("track",tracking_id)
         setLoading(true);
         const response = await axios.post(
-            `https://backend.clicksolver.com/api/service/booking/item/details`,
-            { tracking_id },
-          );
-
-        console.log(response)
+          `https://backend.clicksolver.com/api/service/booking/item/details`,
+          { tracking_id }
+        );
         const { data } = response.data;
         setStatus(data.time || {});
         setDetails(data);
@@ -122,11 +116,13 @@ const ServiceBookingItem = () => {
           </div>
           <div className="flex-1">
             <p className="text-lg font-medium">{details.name}</p>
-            <p className="text-sm text-gray-500">{details.service}</p>
+            <p className="text-sm" style={{ color: isDarkMode ? '#a3a3a3' : '#6b7280' }}>
+              {details.service}
+            </p>
           </div>
         </div>
 
-        <hr className="border-t-2 border-gray-200 mb-4" />
+        <hr className={`border-t-2 ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} mb-4`} />
 
         {/* Service Details */}
         <div className="mb-4 px-2">
@@ -142,7 +138,7 @@ const ServiceBookingItem = () => {
           </div>
         </div>
 
-        <hr className="border-t-2 border-gray-200 mb-4" />
+        <hr className={`border-t-2 ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} mb-4`} />
 
         {/* Service Timeline */}
         <div className="mb-4 px-2">
@@ -163,7 +159,7 @@ const ServiceBookingItem = () => {
                 </div>
                 <div className="ml-3">
                   <p className="text-base font-medium">{item.title}</p>
-                  <p className="text-xs text-gray-500">
+                  <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                     {item.time ? item.time : t('pending') || 'Pending'}
                   </p>
                 </div>
@@ -172,7 +168,7 @@ const ServiceBookingItem = () => {
           </div>
         </div>
 
-        <hr className="border-t-2 border-gray-200 mb-4" />
+        <hr className={`border-t-2 ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} mb-4`} />
 
         {/* Address */}
         <div className="mb-4 px-2">
@@ -192,7 +188,7 @@ const ServiceBookingItem = () => {
         {/* Payment Details Toggle */}
         <div className="mb-4">
           <button
-            className="w-full flex items-center justify-between px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded"
+            className={`w-full flex items-center justify-between px-4 py-2 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'} rounded`}
             onClick={togglePaymentDetails}
           >
             <span className="text-base font-semibold">
@@ -227,7 +223,7 @@ const ServiceBookingItem = () => {
           </div>
         )}
 
-        <hr className="border-t-2 border-gray-200 my-4" />
+        <hr className={`border-t-2 ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} my-4`} />
 
         {/* Pay Button */}
         <button disabled className="w-full py-3 rounded bg-gray-400 cursor-not-allowed">

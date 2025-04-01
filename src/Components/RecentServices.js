@@ -4,6 +4,7 @@ import axios from 'axios';
 import { MdErrorOutline } from 'react-icons/md';
 import { IoIosSearch } from 'react-icons/io';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
 
 /**
  * Helper function to format dates.
@@ -27,6 +28,7 @@ const formatDate = (dateString) => {
 const ServiceItemCard = ({ item, tab }) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { isDarkMode } = useTheme();
 
   const isCancelled =
     item.complete_status === 'cancel' ||
@@ -51,7 +53,7 @@ const ServiceItemCard = ({ item, tab }) => {
       : null;
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg p-3 mb-3 shadow">
+    <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg p-3 mb-3 shadow`}>
       {/* Top row: image + text */}
       <div className="flex flex-row">
         <img
@@ -60,13 +62,13 @@ const ServiceItemCard = ({ item, tab }) => {
           alt="Service"
         />
         <div className="flex flex-col ml-3 flex-1">
-          <p className="text-sm font-semibold text-gray-800 dark:text-white mb-1 truncate">
+          <p className={`text-sm font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'} mb-1 truncate`}>
             {t(`singleService_${serviceName}`) || serviceName}
           </p>
           <p className="text-xs text-gray-500 mb-1">
             {formatDate(item.created_at)}
           </p>
-          <p className="text-sm font-medium text-gray-800 dark:text-gray-300">
+          <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>
             ₹{item.total_cost}
           </p>
         </div>
@@ -75,11 +77,11 @@ const ServiceItemCard = ({ item, tab }) => {
       {/* Bottom row: button aligned to the right */}
       <div className="flex justify-end mt-2">
         <button
-          className={`px-3 py-2 rounded text-sm font-medium 
-            ${disabled 
+          className={`px-3 py-2 rounded text-sm font-medium ${
+            disabled 
               ? 'bg-gray-300 text-gray-600 cursor-not-allowed' 
-              : 'bg-orange-500 text-white'}`
-          }
+              : 'bg-orange-500 text-white'
+          }`}
           onClick={() => {
             if (!disabled) {
               if (tab === 'ongoing') {
@@ -107,6 +109,8 @@ const ServiceItemCard = ({ item, tab }) => {
  */
 const ErrorRetryView = ({ onRetry }) => {
   const { t } = useTranslation();
+  const { isDarkMode } = useTheme();
+
   return (
     <div className="flex flex-col items-center justify-center p-4">
       <MdErrorOutline size={48} className="text-red-500" />
@@ -129,6 +133,7 @@ const ErrorRetryView = ({ onRetry }) => {
 const RecentServices = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { isDarkMode } = useTheme();
 
   // Tab states
   const [selectedTab, setSelectedTab] = useState('ongoing');
@@ -228,10 +233,10 @@ const RecentServices = () => {
   const filteredData = getFilteredData();
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
+    <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`}>
       {/* TOP BAR */}
-      <div className="flex justify-between items-center p-4 bg-white dark:bg-gray-800 shadow">
-        <h1 className="text-lg md:text-xl font-bold text-gray-800 dark:text-white">
+      <div className={`flex justify-between items-center p-4 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} shadow`}>
+        <h1 className={`text-lg md:text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
           {t('my_services') || 'My Services'}
         </h1>
         <button
@@ -240,35 +245,34 @@ const RecentServices = () => {
             setSearchText('');
           }}
         >
-          <IoIosSearch size={24} className="text-gray-800 dark:text-white" />
+          <IoIosSearch size={24} className={`${isDarkMode ? 'text-white' : 'text-gray-800'}`} />
         </button>
       </div>
 
       {/* SEARCH BOX OR TABS */}
       {searchActive ? (
-        <div className="p-4 bg-gray-100 dark:bg-gray-700">
+        <div className={`${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'} p-4`}>
           <input
             type="text"
-            className="w-full p-2 rounded border border-gray-300 dark:bg-gray-800 dark:text-white text-sm"
+            className={`w-full p-2 rounded border border-gray-300 ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'} text-sm`}
             placeholder={t('search_services') || 'Search services...'}
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
           />
         </div>
       ) : (
-        <div className="flex justify-center items-center bg-gray-100 dark:bg-gray-700 p-2">
+        <div className={`${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'} flex justify-center items-center p-2`}>
           {['ongoing', 'completed', 'cancelled'].map((tab) => {
             const active = tab === selectedTab;
             return (
               <button
                 key={tab}
                 onClick={() => setSelectedTab(tab)}
-                className={`mx-1 px-4 py-2 rounded-full border text-sm font-medium
-                  ${
-                    active
-                      ? 'bg-orange-500 text-white border-orange-500'
-                      : 'bg-white text-gray-800 border-gray-300'
-                  }`}
+                className={`mx-1 px-4 py-2 rounded-full border text-sm font-medium ${
+                  active
+                    ? 'bg-orange-500 text-white border-orange-500'
+                    : `${isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'} border-gray-300`
+                }`}
               >
                 {t(tab) || tab.charAt(0).toUpperCase() + tab.slice(1)}
               </button>
@@ -281,7 +285,7 @@ const RecentServices = () => {
       <div className="p-4">
         {loading ? (
           <div className="flex justify-center items-center h-40">
-            <p>Loading...</p>
+            <p className={`${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Loading...</p>
           </div>
         ) : !tokenFound ? (
           <div className="flex flex-col justify-center items-center p-4">

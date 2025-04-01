@@ -3,11 +3,13 @@ import axios from 'axios';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaArrowLeft, FaCrosshairs } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '../context/ThemeContext';
 
 const UserLocation = () => {
   const navigate = useNavigate();
   const locationRoute = useLocation();
   const { t } = useTranslation();
+  const { isDarkMode } = useTheme();
   const { serviceName, savings, tipAmount, offer, suggestion } = locationRoute.state || {};
 
   // State variables
@@ -35,7 +37,7 @@ const UserLocation = () => {
   const mapInstanceRef = useRef(null);
   const markerRef = useRef(null);
 
-  // Example polygon geofences (coordinates provided as [lat, lng])
+  // Example polygon geofences (coordinates as [lat, lng])
   const polygonGeofences = [
     {
       id: 'zone1',
@@ -60,17 +62,18 @@ const UserLocation = () => {
         [17.006761409194525, 80.53093335197622],
       ],
     },
-    // ... add other zones if needed.
+    // ... other zones if needed.
   ];
 
-  // Ray-casting algorithm to check if a point (in [lng, lat]) is inside a polygon (provided as [lat, lng])
+  // Ray-casting algorithm to check if point [lng, lat] is inside a polygon ([lat, lng] coordinates)
   const isPointInPolygon = (point, polygon) => {
-    const poly = polygon.map(coord => [coord[1], coord[0]]); // convert [lat, lng] -> [lng, lat]
-    const x = point[0], y = point[1];
+    // Convert polygon coordinates from [lat, lng] to [lng, lat]
+    const poly = polygon.map(coord => [coord[1], coord[0]]);
+    const [x, y] = point;
     let inside = false;
     for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-      const xi = poly[i][0], yi = poly[i][1];
-      const xj = poly[j][0], yj = poly[j][1];
+      const [xi, yi] = poly[i];
+      const [xj, yj] = poly[j];
       const intersect = ((yi > y) !== (yj > y)) && (x < ((xj - xi) * (y - yi)) / (yj - yi) + xi);
       if (intersect) inside = !inside;
     }
@@ -85,7 +88,7 @@ const UserLocation = () => {
     }
   }, [locationRoute.state]);
 
-  // Function to send location data to your backend server
+  // Function to send location data to backend
   const sendDataToServer = useCallback(async (longitude, latitude) => {
     try {
       const token = localStorage.getItem('cs_token');
@@ -106,7 +109,7 @@ const UserLocation = () => {
     }
   }, [t]);
 
-  // Reverse geocode using Ola Maps reverse-geocode endpoint via axios
+  // Reverse geocode via Ola Maps API
   const fetchAndSetPlaceDetails = useCallback(async (latitude, longitude) => {
     const apiKey = 'q0k6sOfYNxdt3bGvqF6W1yvANHeVtrsu9T5KW9a4';
     const url = `https://api.olamaps.io/places/v1/reverse-geocode?latlng=${latitude},${longitude}&api_key=${apiKey}`;
@@ -142,7 +145,7 @@ const UserLocation = () => {
     }
   }, [t]);
 
-  // Get user's current location using browser geolocation
+  // Get user's current location via browser geolocation
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -174,7 +177,7 @@ const UserLocation = () => {
         mapInstanceRef.current = map;
 
         map.on('load', () => {
-          // Add polygon geofences with a light fill color.
+          // Add polygon geofences
           const features = polygonGeofences.map(fence => ({
             type: 'Feature',
             geometry: {
@@ -195,13 +198,12 @@ const UserLocation = () => {
             paint: { 'fill-color': 'rgba(240,240,240,0.4)' },
           });
 
-          // Create or update a single marker using map.addMarker (instead of using a constructor)
+          // Add or update marker
           if (userLocation) {
             if (!markerRef.current) {
-              // Use the documented addMarker method
               markerRef.current = map.addMarker({
                 coordinates: userLocation,
-                color: '#FF0000', // Red for visibility
+                color: '#FF0000',
               });
             } else {
               markerRef.current.setLngLat(userLocation);
@@ -210,7 +212,7 @@ const UserLocation = () => {
             map.setZoom(18);
           }
 
-          // Update location on map click and update the marker.
+          // Update location on map click
           map.on('click', (e) => {
             const { lng, lat } = e.lngLat;
             const newLocation = [lng, lat];
@@ -243,7 +245,7 @@ const UserLocation = () => {
     }
   }, [userLocation, fetchAndSetPlaceDetails, sendDataToServer]);
 
-  // Update map view when userLocation changes
+  // Update map when userLocation changes
   useEffect(() => {
     if (mapInstanceRef.current && userLocation) {
       mapInstanceRef.current.setCenter(userLocation);
@@ -277,7 +279,7 @@ const UserLocation = () => {
     );
   };
 
-  // Confirm location and validate if it lies within a polygon geofence
+  // Confirm location and validate if it lies within any geofence
   const handleConfirmLocation = async () => {
     setConfirmLoading(true);
     if (userLocation) {
@@ -394,39 +396,40 @@ const UserLocation = () => {
       const finalCost = item.totalCost - allocatedDiscount;
       return (
         <div key={index} className="flex justify-between items-center py-2">
-          <p className="text-sm text-gray-800 dark:text-gray-100 w-20">
+          <p className={`text-sm ${isDarkMode ? 'text-gray-100' : 'text-gray-800'} w-20`}>
             {t(`singleService_${item.main_service_id}`) || item.serviceName}
           </p>
-          <p className="text-sm text-gray-800 dark:text-gray-100">
-            <span className="line-through text-gray-500">₹{item.totalCost}</span> ₹{finalCost}
+          <p className={`text-sm ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>
+            <span className="line-through" style={{ color: isDarkMode ? '#aaa' : '#555' }}>₹{item.totalCost}</span> ₹{finalCost}
           </p>
         </div>
       );
     } else {
       return (
         <div key={index} className="flex justify-between items-center py-2">
-          <p className="text-sm text-gray-800 dark:text-gray-100 w-20">
+          <p className={`text-sm ${isDarkMode ? 'text-gray-100' : 'text-gray-800'} w-20`}>
             {t(`singleService_${item.main_service_id}`) || item.serviceName}
           </p>
-          <p className="text-sm text-gray-800 dark:text-gray-100">₹{item.totalCost}</p>
+          <p className={`text-sm ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>₹{item.totalCost}</p>
         </div>
       );
     }
   };
 
   return (
-    <div className="relative bg-white dark:bg-gray-900 min-h-screen">
+    <div className={`relative min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`}>
       {/* Search Box */}
       <div className="absolute top-8 left-0 right-0 z-50 flex justify-center">
-        <div className="flex items-center bg-white dark:bg-gray-800 rounded-lg w-11/12 shadow-md h-14 px-4">
+        <div className={`flex items-center rounded-lg w-11/12 shadow-md h-14 px-4 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
           <button onClick={handleBackPress} className="mr-3">
-            <FaArrowLeft size={18} className="text-gray-500" />
+            <FaArrowLeft size={18} className={`${isDarkMode ? 'text-white' : 'text-gray-500'}`} />
           </button>
           <div className="mr-3">
             <div className="w-3 h-3 rounded-full bg-green-500"></div>
           </div>
           <input
-            className="flex-1 outline-none text-sm px-2 bg-transparent text-gray-800 dark:text-gray-100"
+            className="flex-1 outline-none text-sm px-2 bg-transparent"
+            style={{ color: isDarkMode ? 'white' : '#1D2951' }}
             placeholder={t('search_location') || 'Search location ...'}
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
@@ -435,7 +438,7 @@ const UserLocation = () => {
             }
           />
           <button onClick={() => {}} className="ml-2">
-            <span className="text-xl text-gray-500">♡</span>
+            <span className="text-xl" style={{ color: isDarkMode ? 'white' : 'black' }}>♡</span>
           </button>
         </div>
       </div>
@@ -444,14 +447,14 @@ const UserLocation = () => {
       <div className="w-full h-[75vh]">
         <div ref={mapContainerRef} className="w-full h-full"></div>
         {locationLoading && (
-          <div className="absolute inset-0 bg-white/70 dark:bg-gray-800/80 flex justify-center items-center">
-            <span>Loading...</span>
+          <div className="absolute inset-0 flex justify-center items-center" style={{ backgroundColor: isDarkMode ? 'rgba(55, 65, 81, 0.8)' : 'rgba(255,255,255,0.7)' }}>
+            <span style={{ color: isDarkMode ? 'white' : 'black' }}>Loading...</span>
           </div>
         )}
       </div>
 
       {/* Booking Card */}
-      <div className="absolute bottom-0 w-full p-4 bg-white dark:bg-gray-800 rounded-t-2xl shadow-lg h-[30vh]">
+      <div className={`absolute bottom-0 w-full p-4 rounded-t-2xl shadow-lg h-[30vh] ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
         <div className="h-full flex flex-col justify-between">
           <div className="overflow-y-auto">
             {service.map((item, index) => renderServiceItem(item, index))}
@@ -470,12 +473,12 @@ const UserLocation = () => {
 
       {/* Out-of-Polygon Modal */}
       {showOutOfPolygonModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg w-4/5 text-center">
-            <p className="text-lg font-bold text-gray-800 dark:text-gray-100">
+        <div className="fixed inset-0 flex justify-center items-center z-50" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className={`p-6 rounded-lg w-4/5 text-center ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
+            <p className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'} mb-4`}>
               {t('location_not_serviceable') || 'Location Not Serviceable'}
             </p>
-            <p className="text-base text-gray-600 dark:text-gray-300 my-4">
+            <p className={`text-base ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} my-4 px-2`}>
               {t('location_not_available', { city: city || t('this') || 'this' }) ||
                 `We are not in ${city || 'this'} location. Please choose another location or tap "Remind Me" to get a notification when service is available.`}
             </p>
@@ -493,24 +496,31 @@ const UserLocation = () => {
 
       {/* Message Box Modal */}
       {showMessageBox && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg w-4/5 relative">
+        <div className="fixed inset-0 flex justify-center items-center z-50" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className={`p-6 rounded-lg w-4/5 relative ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
             {confirmLoading ? (
               <div className="flex flex-col items-center">
-                <span>Loading...</span>
-                <p className="mt-2 text-gray-600 dark:text-gray-300">
+                <span style={{ color: isDarkMode ? 'white' : 'black' }}>Loading...</span>
+                <p className={`mt-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                   {t('fetching_details') || 'Fetching details...'}
                 </p>
               </div>
             ) : (
               <>
-                <p className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">
+                <p className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'} mb-4`}>
                   {t('enter_complete_address') || 'Enter complete address!'}
                 </p>
                 <div className="mb-2">
-                  <label className="block text-sm text-gray-500">{t('city') || 'City'}</label>
+                  <label className="block text-sm" style={{ color: isDarkMode ? 'lightgray' : 'gray' }}>
+                    {t('city') || 'City'}
+                  </label>
                   <input
-                    className="w-full h-10 border border-gray-300 rounded-md px-3 text-sm"
+                    className="w-full h-10 border rounded-md px-3 text-sm"
+                    style={{
+                      borderColor: isDarkMode ? 'lightgray' : '#ccc',
+                      backgroundColor: isDarkMode ? '#2D3748' : '#fff',
+                      color: isDarkMode ? '#fff' : '#000',
+                    }}
                     placeholder={t('city_placeholder') || 'City'}
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
@@ -518,9 +528,16 @@ const UserLocation = () => {
                   {cityError && <p className="text-red-500 text-xs">{cityError}</p>}
                 </div>
                 <div className="mb-2">
-                  <label className="block text-sm text-gray-500">{t('area') || 'Area'}</label>
+                  <label className="block text-sm" style={{ color: isDarkMode ? 'lightgray' : 'gray' }}>
+                    {t('area') || 'Area'}
+                  </label>
                   <input
-                    className="w-full h-10 border border-gray-300 rounded-md px-3 text-sm"
+                    className="w-full h-10 border rounded-md px-3 text-sm"
+                    style={{
+                      borderColor: isDarkMode ? 'lightgray' : '#ccc',
+                      backgroundColor: isDarkMode ? '#2D3748' : '#fff',
+                      color: isDarkMode ? '#fff' : '#000',
+                    }}
                     placeholder={t('area_placeholder') || 'Area'}
                     value={area}
                     onChange={(e) => setArea(e.target.value)}
@@ -528,9 +545,16 @@ const UserLocation = () => {
                   {areaError && <p className="text-red-500 text-xs">{areaError}</p>}
                 </div>
                 <div className="mb-2">
-                  <label className="block text-sm text-gray-500">{t('pincode') || 'Pincode'}</label>
+                  <label className="block text-sm" style={{ color: isDarkMode ? 'lightgray' : 'gray' }}>
+                    {t('pincode') || 'Pincode'}
+                  </label>
                   <input
-                    className="w-full h-10 border border-gray-300 rounded-md px-3 text-sm"
+                    className="w-full h-10 border rounded-md px-3 text-sm"
+                    style={{
+                      borderColor: isDarkMode ? 'lightgray' : '#ccc',
+                      backgroundColor: isDarkMode ? '#2D3748' : '#fff',
+                      color: isDarkMode ? '#fff' : '#000',
+                    }}
                     placeholder={t('pincode_placeholder') || 'Pincode'}
                     value={pincode}
                     onChange={(e) => setPincode(e.target.value)}
@@ -538,9 +562,16 @@ const UserLocation = () => {
                   {pincodeError && <p className="text-red-500 text-xs">{pincodeError}</p>}
                 </div>
                 <div className="mb-2">
-                  <label className="block text-sm text-gray-500">{t('phone_number') || 'Phone number'}</label>
+                  <label className="block text-sm" style={{ color: isDarkMode ? 'lightgray' : 'gray' }}>
+                    {t('phone_number') || 'Phone number'}
+                  </label>
                   <input
-                    className="w-full h-10 border border-gray-300 rounded-md px-3 text-sm"
+                    className="w-full h-10 border rounded-md px-3 text-sm"
+                    style={{
+                      borderColor: isDarkMode ? 'lightgray' : '#ccc',
+                      backgroundColor: isDarkMode ? '#2D3748' : '#fff',
+                      color: isDarkMode ? '#fff' : '#000',
+                    }}
                     placeholder={t('alternate_phone') || 'Alternate phone number'}
                     value={alternatePhoneNumber}
                     onChange={(e) => setAlternatePhoneNumber(e.target.value)}
@@ -548,9 +579,16 @@ const UserLocation = () => {
                   {phoneError && <p className="text-red-500 text-xs">{phoneError}</p>}
                 </div>
                 <div className="mb-2">
-                  <label className="block text-sm text-gray-500">{t('name') || 'Name'}</label>
+                  <label className="block text-sm" style={{ color: isDarkMode ? 'lightgray' : 'gray' }}>
+                    {t('name') || 'Name'}
+                  </label>
                   <input
-                    className="w-full h-10 border border-gray-300 rounded-md px-3 text-sm"
+                    className="w-full h-10 border rounded-md px-3 text-sm"
+                    style={{
+                      borderColor: isDarkMode ? 'lightgray' : '#ccc',
+                      backgroundColor: isDarkMode ? '#2D3748' : '#fff',
+                      color: isDarkMode ? '#fff' : '#000',
+                    }}
                     placeholder={t('alternate_name') || 'Alternate name'}
                     value={alternateName}
                     onChange={(e) => setAlternateName(e.target.value)}
@@ -560,7 +598,7 @@ const UserLocation = () => {
                 <button onClick={handleBookCommander} className="w-full bg-orange-600 py-3 rounded-md mt-4">
                   <span className="text-white text-lg">{t('book_commander') || 'Book Commander'}</span>
                 </button>
-                <button onClick={() => setShowMessageBox(false)} className="absolute top-2 right-2 text-xl text-gray-500">
+                <button onClick={() => setShowMessageBox(false)} className="absolute top-2 right-2 text-xl" style={{ color: isDarkMode ? 'white' : 'black' }}>
                   ×
                 </button>
               </>
@@ -570,9 +608,9 @@ const UserLocation = () => {
       )}
 
       {/* Crosshairs Button */}
-      <div className="fixed right-5 bottom-[290px] bg-white dark:bg-gray-800 rounded-full p-3 shadow-md">
+      <div className={`fixed right-5 ${'bottom-[290px]'} rounded-full p-3 shadow-md`} style={{ backgroundColor: isDarkMode ? '#2D3748' : '#fff' }}>
         <button onClick={handleCrosshairsPress}>
-          <FaCrosshairs size={24} className="text-gray-500" />
+          <FaCrosshairs size={24} style={{ color: isDarkMode ? '#A0AEC0' : '#555' }} />
         </button>
       </div>
     </div>

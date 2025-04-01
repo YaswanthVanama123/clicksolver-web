@@ -11,7 +11,7 @@ import { LuMessageCircleMore } from 'react-icons/lu';
 import { useTheme } from '../context/ThemeContext';
 import { useTranslation } from 'react-i18next';
 
-// Local assets – adjust the paths as necessary
+// Local assets – adjust paths as necessary
 import startMarker from '../assets/start-marker.png';
 import endMarker from '../assets/end-marker.png';
 
@@ -27,7 +27,7 @@ const Navigation = () => {
   const [locationDetails, setLocationDetails] = useState(null);
   const [decodedId, setDecodedId] = useState(null);
   const [encodedData, setEncodedData] = useState(null);
-  const [addressDetails, setAddressDetails] = useState({}); // { name, phone_number, profile, area, rating, serviceCounts }
+  const [addressDetails, setAddressDetails] = useState({});
   const [pin, setPin] = useState('');
   const [serviceArray, setServiceArray] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
@@ -284,7 +284,7 @@ const Navigation = () => {
   // ========= UI HELPER: Render a Service Item =========
   const renderServiceItem = (item, index) => (
     <div key={index} className="flex justify-between items-center py-1">
-      <p className="text-sm text-gray-800 dark:text-gray-100 w-24">
+      <p className={`text-sm ${isDarkMode ? 'text-gray-100' : 'text-gray-800'} w-24`}>
         {t(`singleService_${item.main_service_id}`) || item.serviceName}
       </p>
     </div>
@@ -310,7 +310,7 @@ const Navigation = () => {
     }
   };
 
-  const messageChatting = async () => {
+  const messageChatting = () => {
     navigate('/chat-screen', {
       state: {
         request_id: decodedId,
@@ -356,21 +356,21 @@ const Navigation = () => {
 
   // ========= RENDER =========
   return (
-    <div className="relative min-h-screen bg-white dark:bg-gray-900">
+    <div className={`relative min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`}>
       {/* Map Container */}
       <div className="w-full h-[50vh]">
         {locationDetails ? (
           <div ref={mapContainerRef} className="w-full h-full" />
         ) : (
           <div className="flex items-center justify-center w-full h-full">
-            <p className="text-black dark:text-white">
+            <p className={`${isDarkMode ? 'text-white' : 'text-black'}`}>
               {t('loading_map') || 'Loading Map...'}
             </p>
           </div>
         )}
         {/* Refresh Button */}
         <button
-          className="absolute top-8 right-8 bg-gray-200 dark:bg-gray-700 rounded-full p-2 z-50"
+          className={`absolute top-8 right-8 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'} rounded-full p-2 z-50`}
           onClick={fetchLocationDetails}
         >
           <MdRefresh className="rotate-180" size={22} />
@@ -379,7 +379,7 @@ const Navigation = () => {
 
       {/* Bottom Card */}
       <div
-        className="absolute bottom-0 w-full bg-white dark:bg-gray-800 rounded-t-2xl shadow-lg p-6"
+        className={`absolute bottom-0 w-full ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-t-2xl shadow-lg p-6`}
         style={{ height: '50vh' }}
       >
         {/* Drag Indicator */}
@@ -388,7 +388,7 @@ const Navigation = () => {
         </div>
         {/* Top Text and Location */}
         <div className="mb-4 text-center">
-          <p className="text-lg font-medium text-gray-800 dark:text-gray-100">
+          <p className={`text-lg font-medium ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>
             {t('commander_on_way') || 'Commander on the way'}
           </p>
           <div className="flex items-center justify-center mt-2">
@@ -397,7 +397,7 @@ const Navigation = () => {
               alt="Location Pin"
               className="w-5 h-5 mr-2"
             />
-            <p className="text-sm text-gray-600 dark:text-gray-300">
+            <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
               {addressDetails.area || 'Area not set'}
             </p>
           </div>
@@ -410,12 +410,12 @@ const Navigation = () => {
               {serviceArray && serviceArray.map((item, index) => renderServiceItem(item, index))}
             </div>
             <div className="mb-4">
-              <p className="text-sm text-gray-800 dark:text-gray-100">{t('pin') || 'PIN'}</p>
+              <p className={`text-sm ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>{t('pin') || 'PIN'}</p>
               <div className="flex space-x-2 mt-1">
                 {pin.split('').map((digit, index) => (
                   <div
                     key={index}
-                    className="w-8 h-8 border border-gray-800 dark:border-white rounded flex items-center justify-center"
+                    className={`w-8 h-8 border ${isDarkMode ? 'border-white' : 'border-gray-800'} rounded flex items-center justify-center`}
                   >
                     <p className="text-sm">{digit}</p>
                   </div>
@@ -423,7 +423,7 @@ const Navigation = () => {
               </div>
             </div>
             <button
-              className="w-full bg-white dark:bg-gray-700 rounded-md h-10 flex items-center justify-center border"
+              className={`w-full ${isDarkMode ? 'bg-gray-700' : 'bg-white'} rounded-md h-10 flex items-center justify-center border`}
               onClick={handleCancelModal}
             >
               <p className="text-xs text-gray-500">{t('cancel') || 'Cancel'}</p>
@@ -440,30 +440,30 @@ const Navigation = () => {
                 />
               )}
             </div>
-            <p className="text-sm text-gray-800 dark:text-gray-100">
+            <p className={`text-sm ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>
               {addressDetails.name || 'Worker Name'}
             </p>
             {addressDetails.rating !== undefined && (
               <div className="flex items-center mt-1">
-                <p className="text-sm text-gray-800 dark:text-gray-100 mr-1">
+                <p className={`text-sm mr-1 ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>
                   {Number(addressDetails.rating).toFixed(1)}
                 </p>
               </div>
             )}
             {addressDetails.serviceCounts !== undefined && (
-              <p className="text-sm text-gray-800 dark:text-gray-100 mt-1">
+              <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>
                 {t('no_of_services') || 'No of Services:'} {addressDetails.serviceCounts || 0}
               </p>
             )}
             <div className="flex space-x-2 mt-2">
               <button
-                className="bg-gray-200 dark:bg-gray-600 p-2 rounded-full"
+                className={`p-2 rounded-full ${isDarkMode ? 'bg-gray-600' : 'bg-gray-200'}`}
                 onClick={() => (window.location.href = `tel:${addressDetails.phone_number || ''}`)}
               >
                 <IoMdCall size={18} className="text-[#FF5722]" />
               </button>
               <button
-                className="bg-gray-200 dark:bg-gray-600 p-2 rounded-full"
+                className={`p-2 rounded-full ${isDarkMode ? 'bg-gray-600' : 'bg-gray-200'}`}
                 onClick={messageChatting}
               >
                 <LuMessageCircleMore size={18} className="text-[#FF5722]" />
@@ -475,18 +475,22 @@ const Navigation = () => {
 
       {/* Cancellation Reason Modal */}
       {modalVisible && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-end z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-t-2xl w-full p-6">
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-end z-50"
+          onClick={() => setModalVisible(false)}
+        >
+          <div
+            className={`w-full p-6 rounded-t-2xl ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}
+            onClick={(e) => e.stopPropagation()}
+          >
             <button onClick={closeModal} className="absolute top-4 left-4">
-              <AiOutlineArrowLeft size={20} className="text-gray-900 dark:text-white" />
+              <AiOutlineArrowLeft size={20} className={`${isDarkMode ? 'text-white' : 'text-gray-900'}`} />
             </button>
-            <h2 className="text-center text-lg font-bold text-gray-800 dark:text-gray-100">
-              {t('cancellation_reason_title') ||
-                'What is the reason for your cancellation?'}
+            <h2 className={`text-center text-lg font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
+              {t('cancellation_reason_title') || 'What is the reason for your cancellation?'}
             </h2>
-            <p className="text-center text-sm text-gray-600 dark:text-gray-300 mt-2 mb-4">
-              {t('cancellation_reason_subtitle') ||
-                "Could you let us know why you're canceling?"}
+            <p className={`text-center text-sm mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+              {t('cancellation_reason_subtitle') || "Could you let us know why you're canceling?"}
             </p>
             <div className="space-y-4">
               {['found_better_price', 'wrong_location', 'wrong_service', 'more_time', 'others'].map((key) => (
@@ -495,10 +499,10 @@ const Navigation = () => {
                   className="flex justify-between items-center w-full"
                   onClick={() => setConfirmationModalVisible(true)}
                 >
-                  <span className="text-base text-gray-800 dark:text-gray-100">
+                  <span className={`text-base ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>
                     {t(key) || key.replace('_', ' ')}
                   </span>
-                  <FaAngleRight size={16} className="text-gray-400 dark:text-gray-300" />
+                  <FaAngleRight size={16} className={`${isDarkMode ? 'text-gray-300' : 'text-gray-400'}`} />
                 </button>
               ))}
             </div>
@@ -509,15 +513,14 @@ const Navigation = () => {
       {/* Confirmation Modal */}
       {confirmationModalVisible && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-end z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-t-2xl w-full p-6 relative">
+          <div className={`w-full p-6 rounded-t-2xl relative ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
             <button onClick={closeConfirmationModal} className="absolute top-4 right-4">
-              <RxCrossCircled size={20} className="text-gray-900 dark:text-white" />
+              <RxCrossCircled size={20} className={`${isDarkMode ? 'text-white' : 'text-gray-900'}`} />
             </button>
-            <h2 className="text-center text-lg font-bold text-gray-800 dark:text-gray-100">
-              {t('confirmation_title') ||
-                'Are you sure you want to cancel this Service?'}
+            <h2 className={`text-center text-lg font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
+              {t('confirmation_title') || 'Are you sure you want to cancel this Service?'}
             </h2>
-            <p className="text-center text-sm text-gray-600 dark:text-gray-300 my-4">
+            <p className={`text-center text-sm my-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
               {t('confirmation_subtitle') ||
                 'Please avoid canceling – we’re working to connect you with the best expert to solve your problem.'}
             </p>
@@ -534,9 +537,9 @@ const Navigation = () => {
       )}
 
       {/* Crosshairs Button */}
-      <div className="fixed right-5 bottom-[290px] bg-white dark:bg-gray-800 rounded-full p-3 shadow-md">
+      <div className={`fixed right-5 ${'bottom-[290px]'} ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-full p-3 shadow-md`}>
         <button onClick={() => { /* extra tap handler if needed */ }}>
-          <FaCrosshairs size={24} className="text-gray-500" />
+          <FaCrosshairs size={24} className={`${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`} />
         </button>
       </div>
     </div>

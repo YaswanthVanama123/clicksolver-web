@@ -2,24 +2,21 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-// For Ant Design icons:
 import { AiOutlineArrowLeft } from 'react-icons/ai';
-// Import specific Entypo icons instead of a generic Entypo object:
 import { IoMdTime } from "react-icons/io";
-
 import { RxCross2 } from "react-icons/rx";
-// For Material icons, import the specific icon you need:
 import { MdSearchOff } from 'react-icons/md';
 import Lottie from 'lottie-react';
-
-// Replace with your actual Lottie JSON file path
 import searchLoadingAnimation from '../assets/searchLoading.json';
+import { useTheme } from '../context/ThemeContext';
 
 const SearchItem = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const inputRef = useRef(null);
+  const { isDarkMode } = useTheme();
 
+  // Initial placeholder and texts for animation
   const initialPlaceholder = t('searchFor') + ' ';
   const additionalTexts = [
     t('electrician'),
@@ -50,7 +47,7 @@ const SearchItem = () => {
   const [isFocused, setIsFocused] = useState(false);
   const [recentSearches, setRecentSearches] = useState([]);
 
-  // Animate the placeholder text letter by letter
+  // Animate placeholder text letter by letter
   const updatePlaceholder = useCallback(() => {
     const word = additionalTexts[currentIndex];
     if (currentWordIndex < word.length) {
@@ -68,7 +65,7 @@ const SearchItem = () => {
     return () => clearInterval(interval);
   }, [updatePlaceholder]);
 
-  // Fetch recent searches from localStorage (in place of EncryptedStorage)
+  // Load recent searches from localStorage
   useEffect(() => {
     const recent = localStorage.getItem('recentServices');
     if (recent) {
@@ -138,7 +135,7 @@ const SearchItem = () => {
   const renderSuggestionItem = (item, index) => (
     <div
       key={index}
-      className="flex items-center gap-4 p-3 border-b border-gray-200 dark:border-gray-600 cursor-pointer"
+      className={`flex items-center gap-4 p-3 border-b ${isDarkMode ? 'border-gray-600' : 'border-gray-200'} cursor-pointer`}
       onClick={() => handleServiceClick(item)}
     >
       <img
@@ -147,10 +144,10 @@ const SearchItem = () => {
         className="w-20 h-16 rounded-sm object-cover"
       />
       <div className="flex-1">
-        <p className="text-lg font-medium text-[#1D2951] dark:text-white">
+        <p className={`text-lg font-medium ${isDarkMode ? 'text-white' : 'text-[#1D2951]'}`}>
           {t(`singleService_${item.main_service_id}`) || item.service_tag}
         </p>
-        <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
+        <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} line-clamp-2`}>
           {t(`descriptionSingleService_${item.main_service_id}`) || item.service_details?.about}
         </p>
       </div>
@@ -167,10 +164,10 @@ const SearchItem = () => {
         })
       }
     >
-      <div className="p-1 bg-gray-200 dark:bg-gray-600 rounded">
+      <div className={`p-1 ${isDarkMode ? 'bg-gray-600' : 'bg-gray-200'} rounded`}>
         <IoMdTime size={30} color="#d7d7d7" />
       </div>
-      <p className="text-base md:text-lg text-black dark:text-white">
+      <p className={`text-base md:text-lg ${isDarkMode ? 'text-white' : 'text-black'}`}>
         {t(`singleService_${item.main_service_id}`) || item.service_tag}
       </p>
     </div>
@@ -180,17 +177,15 @@ const SearchItem = () => {
     trendingSearches.map((item, index) => (
       <div
         key={index}
-        className="p-2 md:p-3 rounded-full border border-gray-300 dark:border-gray-600 mr-2 mb-2 cursor-pointer"
+        className={`p-2 md:p-3 rounded-full mr-2 mb-2 cursor-pointer border ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`}
       >
-        <p className="text-base md:text-lg text-black dark:text-white">{item}</p>
+        <p className={`text-base md:text-lg ${isDarkMode ? 'text-white' : 'text-black'}`}>{item}</p>
       </div>
     ));
 
   // Auto focus the search input on mount
   useEffect(() => {
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
+    inputRef.current?.focus();
   }, []);
 
   const handleHome = useCallback(() => {
@@ -198,17 +193,18 @@ const SearchItem = () => {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col">
+    <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-white'} flex flex-col`}>
       {/* Search Bar */}
-      <div className="flex flex-row items-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 m-4 p-2">
+      <div className={`flex flex-row items-center border ${isDarkMode ? 'border-gray-600' : 'border-gray-300'} rounded ${isDarkMode ? 'bg-gray-800' : 'bg-white'} m-4 p-2`}>
         <button onClick={handleHome} className="pl-2">
-          <AiOutlineArrowLeft size={20} className="text-black dark:text-white" />
+          <AiOutlineArrowLeft size={20} className={`${isDarkMode ? 'text-white' : 'text-black'}`} />
         </button>
         <div className="relative flex-1 flex items-center">
           <input
             ref={inputRef}
             type="text"
-            className="flex-1 h-10 md:h-12 pl-2 text-sm md:text-base font-semibold text-[#1D2951] dark:text-white bg-transparent outline-none"
+            className="flex-1 h-10 md:h-12 pl-2 text-sm md:text-base font-semibold bg-transparent outline-none"
+            style={{ color: isDarkMode ? 'white' : '#1D2951' }}
             placeholder={placeholderText}
             value={searchQuery}
             onChange={handleInputChange}
@@ -217,7 +213,7 @@ const SearchItem = () => {
           />
           {searchQuery.length > 0 && (
             <button onClick={handleClear} className="absolute right-2">
-              <RxCross2 size={20} className="text-black dark:text-white" />
+              <RxCross2 size={20} className={`${isDarkMode ? 'text-white' : 'text-black'}`} />
             </button>
           )}
         </div>
@@ -226,22 +222,22 @@ const SearchItem = () => {
       {/* Scrollable Suggestions Area */}
       <div className="flex-1 overflow-y-auto">
         {searchQuery.length > 0 && suggestions.length > 0 && (
-          <div className="mt-1 bg-white dark:bg-gray-800 rounded">
+          <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded mt-1`}>
             {suggestions.map((item, index) => renderSuggestionItem(item, index))}
           </div>
         )}
         {searchQuery.length > 0 && suggestions.length === 0 && !loading && (
           <div className="flex flex-col items-center mt-8 px-4">
-            <MdSearchOff size={45} className="text-black dark:text-white" />
-            <p className="text-xl md:text-2xl font-medium text-gray-500 dark:text-white">
+            <MdSearchOff size={45} className={`${isDarkMode ? 'text-white' : 'text-black'}`} />
+            <p className={`text-xl md:text-2xl font-medium ${isDarkMode ? 'text-white' : 'text-gray-500'}`}>
               {t('noResultsFound')}
             </p>
-            <p className="text-sm text-gray-500 dark:text-gray-400 text-center my-4 px-2">
+            <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} text-center my-4 px-2`}>
               {t('noResultsDescription')}
             </p>
-            <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 my-2"></div>
+            <div className={`${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'} w-full h-2 my-2`}></div>
             <div className="p-4">
-              <p className="font-medium text-lg text-black dark:text-white mb-2">
+              <p className={`font-medium text-lg ${isDarkMode ? 'text-white' : 'text-black'} mb-2`}>
                 {t('trendingSearches')}
               </p>
               <div className="flex flex-wrap">{renderTrendingSearches()}</div>
@@ -251,14 +247,14 @@ const SearchItem = () => {
         {searchQuery.length === 0 && suggestions.length === 0 && (
           <div className="p-4">
             <div className="mb-4 p-4">
-              <p className="font-medium text-lg text-black dark:text-white mb-2">
+              <p className={`font-medium text-lg ${isDarkMode ? 'text-white' : 'text-black'} mb-2`}>
                 {t('recents')}
               </p>
               {recentSearches.map((item, index) => renderRecentSearchItem(item, index))}
             </div>
-            <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 my-2"></div>
+            <div className={`${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'} w-full h-2 my-2`}></div>
             <div className="p-4">
-              <p className="font-medium text-lg text-black dark:text-white mb-2">
+              <p className={`font-medium text-lg ${isDarkMode ? 'text-white' : 'text-black'} mb-2`}>
                 {t('trendingSearches')}
               </p>
               <div className="flex flex-wrap">{renderTrendingSearches()}</div>

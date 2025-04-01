@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { IoArrowBack, IoMailOutline, IoCall } from 'react-icons/io5';
+import { useTheme } from '../context/ThemeContext';
 
 const HelpScreen = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { isDarkMode } = useTheme();
   const [loadingCall, setLoadingCall] = useState(false);
 
   // Define the steps with translated texts.
@@ -67,13 +69,13 @@ const HelpScreen = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900">
+    <div className={`min-h-screen flex flex-col ${isDarkMode ? 'bg-gray-900' : 'bg-gray-100'}`}>
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-900 shadow">
+      <div className={`flex items-center justify-between px-4 py-3 ${isDarkMode ? 'bg-gray-900' : 'bg-white'} shadow`}>
         <button onClick={() => navigate(-1)} className="focus:outline-none">
-          <IoArrowBack size={24} className="text-gray-900 dark:text-white" />
+          <IoArrowBack size={24} className={`${isDarkMode ? 'text-white' : 'text-gray-900'}`} />
         </button>
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+        <h2 className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
           {t('help_support') || 'Help & Support'}
         </h2>
         <button onClick={handleEmailPress} className="focus:outline-none">
@@ -83,17 +85,20 @@ const HelpScreen = () => {
 
       {/* Steps Section */}
       <div className="flex-1 overflow-y-auto px-4 py-6">
-        <p className="text-center mb-6 font-medium text-gray-600 dark:text-gray-300">
+        <p className={`text-center mb-6 font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
           {t('follow_steps') || 'Follow these simple steps to get started'}
         </p>
         {steps.map((step, index) => (
-          <div key={index} className="flex items-center bg-white dark:bg-gray-800 rounded-full p-4 mb-4 shadow">
+          <div
+            key={index}
+            className={`flex items-center ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-full p-4 mb-4 shadow`}
+          >
             <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center mr-4">
               <span className="text-white font-semibold text-lg">{step.number}</span>
             </div>
             <div className="flex-1">
-              <p className="font-medium text-gray-900 dark:text-white">{step.title}</p>
-              <p className="text-sm text-gray-600 dark:text-gray-300">{step.description}</p>
+              <p className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{step.title}</p>
+              <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{step.description}</p>
             </div>
           </div>
         ))}

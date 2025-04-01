@@ -5,7 +5,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useTranslation } from 'react-i18next';
 // Icons from react-icons
 import { FaArrowLeftLong, FaAngleRight } from 'react-icons/fa6';
-import { MdCircle } from 'react-icons/md';
+import { MdCircle, MdCheckBox, MdCheckBoxOutlineBlank } from 'react-icons/md';
 import { IoMdCall } from 'react-icons/io';
 
 const ServiceTrackingItemScreen = () => {
@@ -14,7 +14,7 @@ const ServiceTrackingItemScreen = () => {
   // Read tracking_id from location.state (ensure you pass it when navigating)
   const tracking_id = location.state?.tracking_id;
   console.log('Received tracking_id:', tracking_id);
-  
+
   const { t } = useTranslation();
   const { isDarkMode } = useTheme();
 
@@ -29,8 +29,8 @@ const ServiceTrackingItemScreen = () => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-  const { width, height } = dimensions;
-  console.log('Window dimensions:', width, height);
+  const { width } = dimensions;
+  console.log('Window width:', width);
 
   const [details, setDetails] = useState({});
   const [serviceArray, setServiceArray] = useState([]);
@@ -73,7 +73,7 @@ const ServiceTrackingItemScreen = () => {
     }
   };
 
-  // Define timeline steps with keys (in lowercase with underscores) and fallback labels.
+  // Define timeline steps with keys and fallback labels.
   const timelineSteps = [
     { key: 'collected_item', fallback: 'Collected Item' },
     { key: 'work_started', fallback: 'Work Started' },
@@ -83,36 +83,26 @@ const ServiceTrackingItemScreen = () => {
 
   // Build timeline data using translation for status titles.
   const timelineData = useMemo(() => {
-    // Convert details.service_status to lowercase and replace spaces with underscores.
     const currentStatusKey =
-      details.service_status && details.service_status.toLowerCase().replace(/\s+/g, '_');
+      details.service_status &&
+      details.service_status.toLowerCase().replace(/\s+/g, '_');
     console.log('Converted service_status:', currentStatusKey);
-
-    // Find the index of the current status key.
     const currentStatusIndex = timelineSteps.findIndex(
       (step) => step.key === currentStatusKey
     );
     console.log('Current status index:', currentStatusIndex);
-
-    // Build timeline array.
-    const data = timelineSteps.map((step, index) => {
-      // Check for a timestamp if available (or show "Pending")
-    //   const stepTimestamp = details?.time?.[step.key] || t('pending') || 'Pending';
-      // Translate the step key or fallback to the provided label.
+    return timelineSteps.map((step, index) => {
       const stepTitle = t(step.key) || step.fallback;
       console.log(`Timeline step ${index}:`, { stepTitle });
-
-      const isActive = currentStatusIndex !== -1 && index <= currentStatusIndex;
+      const isActive =
+        currentStatusIndex !== -1 && index <= currentStatusIndex;
       return {
         title: stepTitle,
-        // time: stepTimestamp,
         iconColor: isActive ? '#ff4500' : '#a1a1a1',
         lineColor: isActive ? '#ff4500' : '#a1a1a1',
       };
     });
-    console.log('Timeline data computed:', data);
-    return data;
-  }, [details.service_status,  t]);
+  }, [details.service_status, t]);
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -145,7 +135,10 @@ const ServiceTrackingItemScreen = () => {
     window
       .open(url, '_self')
       ?.catch(() =>
-        window.open('https://play.google.com/store/apps/details?id=com.phonepe.app', '_blank')
+        window.open(
+          'https://play.google.com/store/apps/details?id=com.phonepe.app',
+          '_blank'
+        )
       );
   };
 
@@ -160,7 +153,7 @@ const ServiceTrackingItemScreen = () => {
   return (
     <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}`}>
       {/* Header */}
-      <div className="flex items-center p-4 bg-gray-100 dark:bg-gray-800 shadow">
+      <div className={`flex items-center p-4 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'} shadow`}>
         <button
           onClick={() => navigate('/', { replace: true })}
           className="p-2 focus:outline-none"
@@ -185,7 +178,7 @@ const ServiceTrackingItemScreen = () => {
           </div>
           <div className="flex-1">
             <p className="text-lg font-medium">{details.name}</p>
-            <p className="text-sm text-gray-500">{details.service}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-300">{details.service}</p>
           </div>
           <button className="p-2 focus:outline-none" onClick={phoneCall}>
             <IoMdCall size={22} color="#FF5722" />
@@ -204,13 +197,11 @@ const ServiceTrackingItemScreen = () => {
           </div>
         </div>
 
-        <hr className="border-t-2 border-gray-200 mb-4" />
+        <hr className="border-t-2 border-gray-200 dark:border-gray-700 mb-4" />
 
         {/* Service Details */}
         <div className="mb-4 px-2">
-          <h2 className="text-lg font-semibold mb-2">
-            {t('service_details') || 'Service Details'}
-          </h2>
+          <h2 className="text-lg font-semibold mb-2">{t('service_details') || 'Service Details'}</h2>
           <div className="pl-4">
             {serviceArray.map((service, index) => (
               <p key={index} className="text-base mb-1">
@@ -220,13 +211,11 @@ const ServiceTrackingItemScreen = () => {
           </div>
         </div>
 
-        <hr className="border-t-2 border-gray-200 mb-4" />
+        <hr className="border-t-2 border-gray-200 dark:border-gray-700 mb-4" />
 
         {/* Additional Info Section */}
         <div className="mb-4 px-2">
-          <h2 className="text-lg font-semibold mb-2">
-            {t('additional_info') || 'Additional Info'}
-          </h2>
+          <h2 className="text-lg font-semibold mb-2">{t('additional_info') || 'Additional Info'}</h2>
           <div className="flex flex-col items-center">
             {details.data?.estimatedDuration && (
               <p className="text-base mb-2">
@@ -243,13 +232,11 @@ const ServiceTrackingItemScreen = () => {
           </div>
         </div>
 
-        <hr className="border-t-2 border-gray-200 mb-4" />
+        <hr className="border-t-2 border-gray-200 dark:border-gray-700 mb-4" />
 
         {/* Service Timeline */}
         <div className="mb-4 px-2">
-          <h2 className="text-lg font-semibold mb-2">
-            {t('service_timeline') || 'Service Timeline'}
-          </h2>
+          <h2 className="text-lg font-semibold mb-2">{t('service_timeline') || 'Service Timeline'}</h2>
           <div className="pl-4">
             {timelineData.map((item, index) => (
               <div key={index} className="flex items-start mb-3">
@@ -271,13 +258,11 @@ const ServiceTrackingItemScreen = () => {
           </div>
         </div>
 
-        <hr className="border-t-2 border-gray-200 mb-4" />
+        <hr className="border-t-2 border-gray-200 dark:border-gray-700 mb-4" />
 
         {/* Address */}
         <div className="mb-4 px-2">
-          <h2 className="text-lg font-semibold mb-2">
-            {t('address') || 'Address'}
-          </h2>
+          <h2 className="text-lg font-semibold mb-2">{t('address') || 'Address'}</h2>
           <div className="flex items-center">
             <img
               src="https://i.postimg.cc/rpb2czKR/1000051859-removebg-preview.png"
@@ -288,10 +273,12 @@ const ServiceTrackingItemScreen = () => {
           </div>
         </div>
 
+        <hr className="border-t-2 border-gray-200 dark:border-gray-700 mb-4" />
+
         {/* Payment Details Toggle */}
         <div className="mb-4">
           <button
-            className="w-full flex items-center justify-between px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded"
+            className={`w-full flex items-center justify-between px-4 py-2 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'} rounded`}
             onClick={togglePaymentDetails}
           >
             <span className="text-base font-semibold">
@@ -329,7 +316,10 @@ const ServiceTrackingItemScreen = () => {
         )}
 
         {/* Pay Button */}
-        <button onClick={openPhonePeScanner} className="w-full py-3 rounded bg-orange-500 hover:bg-orange-600">
+        <button 
+          onClick={openPhonePeScanner} 
+          className="w-full py-3 rounded bg-orange-500 hover:bg-orange-600 mt-4"
+        >
           <span className="text-white text-base font-semibold">{t('pay') || 'PAY'}</span>
         </button>
       </div>

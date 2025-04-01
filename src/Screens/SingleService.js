@@ -1,15 +1,13 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
-import { useNavigate, useLocation } from 'react-router-dom';
 import Lottie from 'lottie-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { IoIosArrowBack } from 'react-icons/io';
 import { FiSearch, FiMinus, FiPlus } from 'react-icons/fi';
 import { IoClose } from 'react-icons/io5';
 import { FaSpinner } from 'react-icons/fa';
 import { useTheme } from '../context/ThemeContext';
-
-// Lottie animation files
 import singleCardAnim from '../assets/singlecard.json';
 import cardsLoading from '../assets/cardsLoading.json';
 
@@ -19,7 +17,7 @@ const SingleService = () => {
   const navigate = useNavigate();
   const locationRoute = useLocation();
 
-  // Extract parameters from location.state (if passed) or fallback to URL query parameters.
+  // Extract parameters from location.state or URL query
   let serviceName, id;
   if (locationRoute.state) {
     serviceName = locationRoute.state.serviceName;
@@ -39,7 +37,7 @@ const SingleService = () => {
   const [loginModalVisible, setLoginModalVisible] = useState(false);
   const [loading, setLoading] = useState(true);
   const [bookingLoading, setBookingLoading] = useState(false);
-
+  
   // Fetch details from API
   const fetchDetails = useCallback(async () => {
     if (!serviceName) return;
@@ -51,7 +49,7 @@ const SingleService = () => {
       );
       const { relatedServices } = response.data;
       setServices(relatedServices || []);
-      // Initialize quantity to 0 for each service
+      // Initialize quantities: start with 0 for each service
       const initialQuantities = {};
       (relatedServices || []).forEach((item) => {
         initialQuantities[item.main_service_id] = 0;
@@ -177,30 +175,27 @@ const SingleService = () => {
 
   return (
     <div className={`${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'} min-h-screen`}>
-      {/* Carousel Container */}
-      <div className="relative w-full" style={{ height: '50vh' }}>
-        {/* Carousel Icons */}
-        <div className="absolute top-2 left-0 right-0 flex justify-between px-4 z-10">
-          <button
-            onClick={handleBackPress}
-            className={`p-2 rounded-full ${isDarkMode ? 'bg-gray-700' : 'bg-white'}`}
-          >
-            <IoIosArrowBack size={24} color={isDarkMode ? '#fff' : '#000'} />
-          </button>
-          <button
-            onClick={handleSearch}
-            className={`p-2 rounded-full ${isDarkMode ? 'bg-gray-700' : 'bg-white'}`}
-          >
-            <FiSearch size={24} color={isDarkMode ? '#fff' : '#000'} />
-          </button>
-        </div>
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 sticky top-0 z-50">
+        <button onClick={handleBackPress} className="p-2">
+          <IoIosArrowBack size={24} color={isDarkMode ? '#fff' : '#000'} />
+        </button>
+        <h1 className="text-xl font-bold text-center flex-1 mx-4" style={{ color: isDarkMode ? '#fff' : '#2d3748' }}>
+          {t(`IndivService_${id}`) || serviceName}
+        </h1>
+        <button onClick={handleSearch} className="p-2">
+          <FiSearch size={24} color={isDarkMode ? '#fff' : '#000'} />
+        </button>
+      </div>
 
+      {/* Service Banner */}
+      <div className="mx-4 my-4">
         {loading ? (
-          <div className="flex justify-center items-center w-full h-full">
+          <div className="flex justify-center items-center h-64">
             <Lottie animationData={singleCardAnim} loop style={{ width: 200, height: 200 }} />
           </div>
         ) : (
-          <div className="overflow-x-auto flex h-full">
+          <div className="overflow-x-auto flex">
             {services.map((srv) => (
               <img
                 key={srv.main_service_id}
@@ -214,38 +209,46 @@ const SingleService = () => {
         )}
       </div>
 
-      {/* Service Title & Info */}
-      <div className={`p-4 border-b ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
-        <h2 className="text-2xl font-bold">
+      {/* Service Details */}
+      <div className="p-4 border-b" style={{ backgroundColor: isDarkMode ? '#1a202c' : '#fff' }}>
+        <h2 className="text-2xl font-bold" style={{ color: isDarkMode ? '#fff' : '#2d3748' }}>
           {t(`IndivService_${id}`) || serviceName}
         </h2>
-        <p className="text-sm mt-1 opacity-80">
+        <p className="text-sm mt-1 opacity-80" style={{ color: isDarkMode ? '#a0aec0' : '#718096' }}>
           {t('spare_text') || 'Spare parts, if required, will incur additional charges'}
         </p>
       </div>
 
       {/* Services List */}
       <div className="p-4">
-        {loading && (
+        {loading ? (
           <div className="flex justify-center items-center h-40">
             <Lottie animationData={cardsLoading} loop style={{ width: 150, height: 150 }} />
           </div>
-        )}
-        {!loading &&
+        ) : (
           services.map((srv) => (
             <div
               key={srv.main_service_id}
-              className={`flex flex-row justify-between items-center p-4 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}
+              className={`flex flex-row justify-between items-center p-4 rounded-lg mb-4 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}
             >
               <div className="flex-1">
-                <h3 className="text-lg font-bold">
+                <h3 className="text-lg font-bold" style={{ color: isDarkMode ? '#fff' : '#2d3748' }}>
                   {t(`singleService_${srv.main_service_id}`) || srv.service_tag}
                 </h3>
                 <p className="text-sm text-gray-500 mt-1 line-clamp-2">
                   {t(`descriptionSingleService_${srv.main_service_id}`) || srv.service_details?.about}
                 </p>
                 <p className="text-base mt-1">₹{srv.cost}</p>
-                <div className="mt-2 flex items-center border border-gray-300 rounded-[5px] px-3 py-1 w-32 justify-between">
+                <div
+                  className="mt-2 flex items-center border rounded"
+                  style={{
+                    width: '8rem',
+                    padding: '0.25rem 0.75rem',
+                    borderColor: isDarkMode ? 'lightgray' : '#ccc',
+                    color: isDarkMode ? '#fff' : '#2d2951',
+                    justifyContent: 'space-between',
+                  }}
+                >
                   <button onClick={() => handleQuantityChange(srv.main_service_id, -1)}>
                     <FiMinus size={18} />
                   </button>
@@ -267,13 +270,20 @@ const SingleService = () => {
                 />
               )}
             </div>
-          ))}
+          ))
+        )}
       </div>
 
       {/* Bottom Cart Bar */}
       {totalAmount > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 flex justify-between items-center p-4 shadow bg-white dark:bg-gray-800">
-          <p className="text-lg font-bold">
+        <div
+          className={`fixed bottom-0 left-0 right-0 flex justify-between items-center p-4 shadow`}
+          style={{
+            backgroundColor: isDarkMode ? '#1a202c' : '#fff',
+            borderTop: isDarkMode ? '1px solid #4a5568' : '1px solid #e2e8f0',
+          }}
+        >
+          <p className="text-lg font-bold" style={{ color: isDarkMode ? '#fff' : '#2d3748' }}>
             {t('total_amount') || 'Total:'} ₹{totalAmount}
           </p>
           <button
@@ -288,7 +298,9 @@ const SingleService = () => {
       {/* Booked Services Modal */}
       {modalVisible && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-end items-end">
-          <div className="w-full bg-white dark:bg-gray-900 p-4 rounded-t-lg relative">
+          <div
+            className={`w-full p-4 rounded-t-lg relative ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}`}
+          >
             <button
               onClick={() => setModalVisible(false)}
               className="absolute top-2 right-2 bg-gray-300 rounded-full p-2"
@@ -317,7 +329,15 @@ const SingleService = () => {
                     <p className="text-sm text-gray-500 line-clamp-2">
                       {t(`descriptionSingleService_${srv.main_service_id}`) || srv.description}
                     </p>
-                    <div className="mt-2 flex items-center border border-gray-300 rounded-[5px] px-3 py-1 w-32 justify-between">
+                    <div
+                      className="mt-2 flex items-center rounded border px-3 py-1"
+                      style={{
+                        width: '8rem',
+                        borderColor: isDarkMode ? 'lightgray' : '#ccc',
+                        color: isDarkMode ? '#fff' : '#2d2951',
+                        justifyContent: 'space-between',
+                      }}
+                    >
                       <button onClick={() => handleQuantityChange(srv.main_service_id, -1)}>
                         <FiMinus size={18} />
                       </button>
@@ -332,7 +352,7 @@ const SingleService = () => {
             </div>
 
             <div className="flex items-center justify-between mt-4">
-              <p className="text-lg font-bold">
+              <p className="text-lg font-bold" style={{ color: isDarkMode ? '#fff' : '#2d3748' }}>
                 {t('total_amount') || 'Total Amount:'} ₹{totalAmount}
               </p>
               {bookingLoading ? (
@@ -355,7 +375,7 @@ const SingleService = () => {
       {/* Login Prompt Modal */}
       {loginModalVisible && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="w-5/6 md:w-1/2 bg-white dark:bg-gray-900 p-4 rounded-lg">
+          <div className={`w-5/6 md:w-1/2 ${isDarkMode ? 'bg-gray-900' : 'bg-white'} p-4 rounded-lg`}>
             <h3 className="text-lg font-bold mb-2">
               {t('login_required') || 'Login Required'}
             </h3>

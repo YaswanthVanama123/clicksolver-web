@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import axios from 'axios';
 import { Buffer } from 'buffer';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -19,7 +19,6 @@ const WaitingUser = () => {
   const [decodedId, setDecodedId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState('waiting');
-  
   const [cancelMessage, setCancelMessage] = useState('');
   const [city, setCity] = useState(null);
   const [area, setArea] = useState(null);
@@ -190,7 +189,6 @@ const WaitingUser = () => {
             'No workers match the requested subservices',
           ].includes(encode)
         ) {
-          // Log user action
           await axios.post(
             'https://backend.clicksolver.com/api/user/action',
             {
@@ -261,7 +259,6 @@ const WaitingUser = () => {
     try {
       attemptCountRef.current += 1;
       if (attemptCountRef.current > 3) {
-        // Force-cancel after 3 attempts
         await axios.post('https://backend.clicksolver.com/api/user/cancellation', {
           user_notification_id: decodedId,
         });
@@ -275,7 +272,6 @@ const WaitingUser = () => {
         return;
       }
 
-      // Cancel previous request if any
       if (decodedId) {
         try {
           await axios.post('https://backend.clicksolver.com/api/user/cancellation', {
@@ -285,7 +281,6 @@ const WaitingUser = () => {
           console.error('Error cancelling previous request:', error);
         }
       }
-      // Then re-request
       const cs_token = window.localStorage.getItem('cs_token');
       await axios.post(
         'https://backend.clicksolver.com/api/user/action/cancel',
@@ -322,13 +317,11 @@ const WaitingUser = () => {
             }
             const encodedNotificationId = Buffer.from(notification_id.toString(), 'utf-8').toString('base64');
             const cs_token = window.localStorage.getItem('cs_token');
-            // Cancel the waiting action
             await axios.post(
               'https://backend.clicksolver.com/api/user/action/cancel',
               { encodedId: encodedData, screen: 'userwaiting', offer },
               { headers: { Authorization: `Bearer ${cs_token}` } }
             );
-            // Move user to next screen
             await axios.post(
               'https://backend.clicksolver.com/api/user/action',
               {
@@ -391,7 +384,6 @@ const WaitingUser = () => {
     return () => clearInterval(interval);
   }, [service]);
 
- // ensure this is declared once
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
@@ -399,14 +391,26 @@ const WaitingUser = () => {
   };
 
   return (
-    <div className={`flex flex-col w-full min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'}`}>
-      {/* 1) MAP SECTION */}
+    <div
+      className={`flex flex-col w-full min-h-screen ${
+        isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'
+      }`}
+    >
+      {/* MAP SECTION */}
       <div ref={mapContainerRef} className="w-full h-[60vh]" />
 
-      {/* 2) BOTTOM CARD */}
-      <div className="bg-white dark:bg-gray-800 p-4 shadow-lg rounded-t-2xl h-[40vh]">
+      {/* BOTTOM CARD */}
+      <div
+        className={`p-4 shadow-lg rounded-t-2xl h-[40vh] ${
+          isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
+        }`}
+      >
         <div className="flex justify-center mb-2">
-          <div className="w-16 h-1 bg-gray-300 dark:bg-gray-600 rounded-full" />
+          <div
+            className={`w-16 h-1 rounded-full ${
+              isDarkMode ? 'bg-gray-600' : 'bg-gray-300'
+            }`}
+          />
         </div>
         <div className="px-4">
           <div className="flex flex-col gap-2">
@@ -418,7 +422,9 @@ const WaitingUser = () => {
                 {t('service_booked') || 'Service Booked'}
               </p>
               <button
-                className="px-4 py-1 border border-gray-300 dark:border-gray-500 rounded-full text-sm"
+                className={`px-4 py-1 rounded-full text-sm ${
+                  isDarkMode ? 'border border-gray-500' : 'border border-gray-300'
+                }`}
                 onClick={handleManualCancel}
               >
                 {t('cancel') || 'Cancel'}
@@ -426,28 +432,34 @@ const WaitingUser = () => {
             </div>
           </div>
         </div>
-        <hr className="my-2 border-gray-200 dark:border-gray-700" />
+        <hr className={`my-2 ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`} />
         <div className="flex justify-center items-center">
-        <Lottie animationData={waitingLoading} loop style={{ width: 110, height: 110 }} />
-          {/* {loading && <p className="text-sm">Loading...</p>} */}
+          <Lottie animationData={waitingLoading} loop style={{ width: 110, height: 110 }} />
         </div>
       </div>
 
-      {/* 3) BACKEND LOADING OVERLAY */}
+      {/* BACKEND LOADING OVERLAY */}
       {backendLoading && (
         <div className="absolute inset-0 bg-black bg-opacity-30 flex justify-center items-center z-50">
           <p className="text-white text-lg">Loading...</p>
         </div>
       )}
 
-      {/* 4) CANCELLATION REASON MODAL */}
+      {/* CANCELLATION REASON MODAL */}
       {modalVisible && (
-        <div className="fixed inset-0 flex items-end bg-black bg-opacity-50 z-50">
-          <div className="w-full bg-white dark:bg-gray-800 rounded-t-2xl p-6">
-            <p className="text-lg font-medium text-center mb-2">
+        <div
+          className="fixed inset-0 flex items-end z-50"
+          style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+        >
+          <div
+            className={`w-full rounded-t-2xl p-6 text-center ${
+              isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
+            }`}
+          >
+            <p className="text-lg font-medium mb-2">
               {t('cancellation_reason_question') || 'What is the reason for your cancellation?'}
             </p>
-            <p className="text-sm text-center mb-4">
+            <p className="text-sm mb-4">
               {t('cancellation_reason_subtitle') || "Could you let us know why you're canceling?"}
             </p>
             <div className="flex flex-col gap-4">
@@ -486,10 +498,17 @@ const WaitingUser = () => {
         </div>
       )}
 
-      {/* 5) CONFIRMATION MODAL */}
+      {/* CONFIRMATION MODAL */}
       {confirmationModalVisible && (
-        <div className="fixed inset-0 flex items-end bg-black bg-opacity-50 z-50">
-          <div className="w-full bg-white dark:bg-gray-800 rounded-t-2xl p-6">
+        <div
+          className="fixed inset-0 flex items-end z-50"
+          style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+        >
+          <div
+            className={`w-full rounded-t-2xl p-6 relative ${
+              isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
+            }`}
+          >
             <p className="text-lg font-medium text-center mb-2">
               {t('cancel_service_confirmation') || 'Are you sure you want to cancel this Service?'}
             </p>
@@ -509,8 +528,12 @@ const WaitingUser = () => {
         </div>
       )}
 
-      {/* 6) TIMER */}
-      <div className="absolute top-4 right-4 bg-white dark:bg-gray-800 p-2 rounded-lg shadow">
+      {/* TIMER */}
+      <div
+        className={`absolute top-4 right-4 p-2 rounded-lg shadow ${
+          isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
+        }`}
+      >
         <p className="text-lg font-semibold">{formatTime(timeLeft)}</p>
       </div>
     </div>

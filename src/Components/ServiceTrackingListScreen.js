@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
-import { MdErrorOutline, MdArrowBack, MdFilterList, MdCheckCircle, MdLocalShipping, MdCheckBox, MdCheckBoxOutlineBlank, MdSearchOff } from 'react-icons/md';
+import { 
+  MdErrorOutline, MdArrowBack, MdFilterList, MdCheckCircle, MdLocalShipping, 
+  MdCheckBox, MdCheckBoxOutlineBlank, MdSearchOff 
+} from 'react-icons/md';
 import { IoIosSearch } from 'react-icons/io';
 import { FaHammer } from "react-icons/fa6";
 import { useNavigate } from 'react-router-dom';
@@ -28,6 +31,7 @@ const formatDate = (dateString) => {
 const ServiceItemCard = ({ item, tab }) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { isDarkMode } = useTheme();
 
   const isCancelled =
     item.complete_status === 'cancel' ||
@@ -50,7 +54,7 @@ const ServiceItemCard = ({ item, tab }) => {
       : null;
 
   return (
-    <div className="flex flex-col bg-white dark:bg-gray-800 rounded-lg p-4 mb-4 shadow">
+    <div className={`flex flex-col ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg p-4 mb-4 shadow`}>
       {/* Top Row: Image and Text */}
       <div className="flex flex-row items-center">
         <img
@@ -59,11 +63,13 @@ const ServiceItemCard = ({ item, tab }) => {
           alt="Service"
         />
         <div className="flex flex-col flex-1">
-          <p className="text-sm font-semibold text-gray-800 dark:text-white truncate">
+          <p className={`text-sm font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'} truncate`}>
             {t(`singleService_${serviceName}`) || serviceName}
           </p>
-          <p className="text-xs text-gray-500">{formatDate(item.created_at)}</p>
-          <p className="text-sm font-medium text-gray-800 dark:text-gray-300">
+          <p className="text-xs" style={{ color: isDarkMode ? '#a3a3a3' : '#6b7280' }}>
+            {formatDate(item.created_at)}
+          </p>
+          <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>
             ₹{item.total_cost}
           </p>
         </div>
@@ -78,15 +84,9 @@ const ServiceItemCard = ({ item, tab }) => {
           }`}
           onClick={() => {
             if (!disabled) {
-              if (tab === (t('ongoing') || 'Ongoing')) {
-                navigate('/ServiceTrackingItem', {
-                  state: { tracking_id: item.tracking_id },
-                });
-              } else {
-                navigate('/ServiceTrackingItem', {
-                  state: { tracking_id: item.tracking_id },
-                });
-              }
+              navigate('/ServiceTrackingItem', {
+                state: { tracking_id: item.tracking_id },
+              });
             }
           }}
           disabled={disabled}
@@ -100,6 +100,7 @@ const ServiceItemCard = ({ item, tab }) => {
 
 const ErrorRetryView = ({ onRetry }) => {
   const { t } = useTranslation();
+  const { isDarkMode } = useTheme();
   return (
     <div className="flex flex-col items-center justify-center p-4">
       <MdErrorOutline size={48} className="text-red-500" />
@@ -195,13 +196,16 @@ const ServiceTrackingListScreen = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 relative" onClick={handleOutsidePress}>
+    <div
+      className={`min-h-screen relative ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`}
+      onClick={handleOutsidePress}
+    >
       {/* Header */}
-      <div className="flex justify-between items-center px-4 py-3 bg-white dark:bg-gray-800 shadow z-10">
+      <div className={`flex justify-between items-center px-4 py-3 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} shadow z-10`}>
         <button onClick={() => navigate(-1)}>
           <MdArrowBack size={24} className={`${isDarkMode ? 'text-white' : 'text-black'}`} />
         </button>
-        <h1 className="text-lg md:text-xl font-medium text-gray-800 dark:text-white">
+        <h1 className={`text-lg md:text-xl font-medium ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
           {t('service_tracking') || 'Service Tracking'}
         </h1>
         <button onClick={() => setIsFilterVisible(!isFilterVisible)}>
@@ -211,8 +215,8 @@ const ServiceTrackingListScreen = () => {
 
       {/* Filter Dropdown */}
       {isFilterVisible && (
-        <div className="absolute right-4 mt-2 w-52 bg-white dark:bg-gray-800 rounded-lg p-3 shadow-lg z-20">
-          <p className="text-sm font-semibold text-gray-600 mb-2">
+        <div className={`absolute right-4 mt-2 w-52 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg p-3 shadow-lg z-20`}>
+          <p className={`text-sm font-semibold ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-2`}>
             {t('project_type') || 'PROJECT TYPE'}
           </p>
           {rawFilterOptions.map((option, index) => (
@@ -222,11 +226,11 @@ const ServiceTrackingListScreen = () => {
               onClick={() => toggleFilter(option)}
             >
               {selectedFilters.includes(option) ? (
-                <MdCheckBox size={20} className="text-gray-700" />
+                <MdCheckBox size={20} className={`${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`} />
               ) : (
-                <MdCheckBoxOutlineBlank size={20} className="text-gray-700" />
+                <MdCheckBoxOutlineBlank size={20} className={`${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`} />
               )}
-              <span className="ml-2 text-sm text-gray-700">
+              <span className={`ml-2 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 {statusTranslationMapping[option]}
               </span>
             </button>
@@ -242,8 +246,8 @@ const ServiceTrackingListScreen = () => {
           </div>
         ) : !tokenFound || filteredData.length === 0 ? (
           <div className="flex flex-col justify-center items-center mt-8">
-            <MdSearchOff size={48} className="text-gray-500" />
-            <p className="mt-2 text-gray-500">
+            <MdSearchOff size={48} className={`${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`} />
+            <p className={`mt-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>
               {tokenFound
                 ? t('no_results_found') || 'No results found'
                 : t('no_trackings_available') || 'No trackings available'}
@@ -255,11 +259,11 @@ const ServiceTrackingListScreen = () => {
           filteredData.map((item, index) => (
             <div
               key={`${item.notification_id}_${index}`}
-              className="flex justify-between items-center bg-white dark:bg-gray-800 rounded-lg p-4 mb-4 shadow cursor-pointer"
+              className={`flex justify-between items-center ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg p-4 mb-4 shadow cursor-pointer`}
               onClick={() => handleCardPress(item.tracking_id)}
             >
               <div className="flex flex-row items-center flex-1">
-                <div className="w-12 h-12 bg-orange-500 rounded-full flex justify-center items-center mr-3">
+                <div className="w-12 h-12 rounded-full flex justify-center items-center mr-3" style={{ backgroundColor: 'orange' }}>
                   {item.service_status === 'Work Completed' ? (
                     <MdCheckCircle size={24} className="text-white" />
                   ) : item.service_status === 'Work started' ? (
@@ -269,7 +273,7 @@ const ServiceTrackingListScreen = () => {
                   )}
                 </div>
                 <div className="flex flex-col">
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                  <p className={`text-sm font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
                     {item.service_status === 'Work Completed'
                       ? t('work_completed') || 'Completed'
                       : item.service_status === 'Work started'
@@ -278,8 +282,12 @@ const ServiceTrackingListScreen = () => {
                       ? t('collected_item') || 'Item Collected'
                       : t('on_the_way') || 'On the Way'}
                   </p>
-                  <p className="text-xs text-gray-500">{formatDate(item.created_at)}</p>
-                  <p className="text-xs text-gray-500">{item.tracking_key}</p>
+                  <p className="text-xs" style={{ color: isDarkMode ? '#a3a3a3' : '#6b7280' }}>
+                    {formatDate(item.created_at)}
+                  </p>
+                  <p className="text-xs" style={{ color: isDarkMode ? '#a3a3a3' : '#6b7280' }}>
+                    {item.tracking_key}
+                  </p>
                 </div>
               </div>
               <div
@@ -291,7 +299,7 @@ const ServiceTrackingListScreen = () => {
                     : 'bg-blue-200'
                 }`}
               >
-                <span className="text-gray-800">
+                <span className={`${isDarkMode ? 'text-gray-900' : 'text-gray-800'}`}>
                   {item.service_status === 'Work Completed'
                     ? t('work_completed') || 'Completed'
                     : item.service_status === 'Work started'
