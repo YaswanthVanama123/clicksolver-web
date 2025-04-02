@@ -15,27 +15,43 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 // Background message handler
-// messaging.onBackgroundMessage((payload) => {
-//   // console.log('[SW] Background message received:', payload);
-//   const notificationData = payload.data;
-  
-//   const notificationTitle = payload.notification?.title || 'New Notification';
-//   const notificationOptions = {
-//     body: payload.notification?.body || 'You have a new message',
-//     icon: '/firebase-logo.png',
-//     data: notificationData
-//   };
+messaging.onBackgroundMessage((payload) => {
+  console.log('[SW] Background message received:', payload);
 
-//   storeNotification(notificationData);
-//   console.log('[SW] Showing system notification');
-//   return self.registration.showNotification(notificationTitle, notificationOptions);
-// });
+  // Forward the payload to all client windows so the main app can log it
+  self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+    clients.forEach((client) => {
+      console.log('[SW] Forwarding message to client:', client.url);
+      client.postMessage({
+        type: 'FCM_BACKGROUND_MESSAGE',
+        payload,
+      });
+    });
+  });
 
-// Notification storage
+  // Prepare notification details
+  const notificationTitle = payload.notification?.title || 'New Notification';
+  const notificationOptions = {
+    body: payload.notification?.body || 'You have a new message',
+    icon: '/firebase-logo.png',
+    data: payload.data,
+  };
+
+  console.log('[SW] Notification details:', notificationTitle, notificationOptions);
+
+  // Store the notification in IndexedDB
+  storeNotification(payload.data);
+
+  console.log('[SW] Showing system notification');
+  return self.registration.showNotification(notificationTitle, notificationOptions);
+});
+
+// Function to store notifications in IndexedDB
 function storeNotification(data) {
   console.log('[SW] Storing notification in IndexedDB:', data);
   
-  const request = indexedDB.open('notificationDB', 1);
+  // Updated the version to 2 to match the existing database version.
+  const request = indexedDB.open('notificationDB', 2);
 
   request.onupgradeneeded = (event) => {
     console.log('[SW] Upgrading IndexedDB version...');
@@ -55,11 +71,11 @@ function storeNotification(data) {
     const store = tx.objectStore('pendingNotifications');
 
     const notificationData = {
-      screen: data.screen,
-      notification_id: data.notification_id,
+      screen: data?.screen,
+      notification_id: data?.notification_id,
       timestamp: Date.now()
     };
-    
+
     console.log('[SW] Adding notification data to store:', notificationData);
     const addRequest = store.add(notificationData);
 
@@ -82,11 +98,12 @@ function storeNotification(data) {
 self.addEventListener('notificationclick', (event) => {
   console.log('[SW] Notification clicked:', event.notification.data);
   event.notification.close();
+
   const { screen, notification_id } = event.notification.data;
-  
+
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      console.log(`[SW] Handling navigation to: ${screen}`, notification_id);
+      console.log(`[SW] Navigating to: ${screen} (ID: ${notification_id})`);
       const targetPath = screen || '/';
       const encodedId = btoa(notification_id);
 
@@ -94,17 +111,17 @@ self.addEventListener('notificationclick', (event) => {
         if (client.url.includes(targetPath) && 'focus' in client) {
           console.log('[SW] Found existing client, focusing');
           return client.focus().then(() => {
-            client.postMessage({ 
-              type: 'NAVIGATE', 
-              path: targetPath, 
-              state: { encodedId } 
+            client.postMessage({
+              type: 'NAVIGATE',
+              path: targetPath,
+              state: { encodedId }
             });
           });
         }
       }
       
       if (self.clients.openWindow) {
-        console.log('[SW] Opening new window');
+        console.log('[SW] Opening new window for target path:', targetPath);
         return self.clients.openWindow(`${self.origin}${targetPath}`);
       }
     })

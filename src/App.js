@@ -1,4 +1,3 @@
-// App.js
 import React, { useEffect } from 'react';
 import {
   BrowserRouter as Router,
@@ -37,7 +36,7 @@ import ServiceTrackingItemScreen from './Components/ServiceTrackingItemScreen';
 import Navigation from './Components/Navigation';
 import ServiceInProgressScreen from './Components/ServiceInProgressScreen';
 import Payment from './Components/Paymentscreen';
-import { requestFCMToken,handleNotificationNavigation  } from './firebase';
+import { requestFCMToken, handleNotificationNavigation } from './firebase';
 import SearchItem from './Components/SearchItem';
 import { getPendingNotifications, clearPendingNotifications } from './indexedDBHelpers';
 import ScrollToTop from './Components/ScrollToTop';
@@ -101,16 +100,14 @@ function AppContent() {
   const location = useLocation();
   // Define routes where the TabNavigator should be visible.
   const tabRoutes = ['/', '/bookings', '/tracking', '/account'];
+  const showTabs = tabRoutes.includes(location.pathname);
 
   return (
     <>
-      <div className="pb-16 overflow-hidden">
+      <div className={`${showTabs ? 'pb-16' : ''} overflow-hidden`}>
         <Routes>
           <Route path="/" element={<ServiceApp />} />
-
           <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
-
-          
           <Route path="/search" element={<SearchItem />} />
           <Route path="/ServiceTrackingItem" element={<ServiceTrackingItemScreen />} />
           <Route path="/UserNavigation" element={<Navigation />} />
@@ -138,7 +135,7 @@ function AppContent() {
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </div>
-      {tabRoutes.includes(location.pathname) && <TabNavigator />}
+      {showTabs && <TabNavigator />}
     </>
   );
 }
@@ -147,52 +144,39 @@ function AppContent() {
 function App() {
   const navigate = useNavigate();
 
-  // Process pending notifications when the document becomes visible.
-  // const handleVisibilityChange = async () => {
-  //   if (document.visibilityState === 'visible') {
-  //     try {
-  //       const notifications = await getPendingNotifications();
-  //       notifications.forEach(({ screen, notification_id }) => {
-  //         if (screen && notification_id) {
-  //           navigate(screen, { state: { encodedId: btoa(notification_id) } });
-  //         }
-  //       });
-  //       await clearPendingNotifications();
-  //     } catch (error) {
-  //       console.error('Notification processing failed:', error);
-  //     }
-  //   }
-  // };
-
   const handleVisibilityChange = () => {
     console.log(`[APP] Visibility changed to: ${document.visibilityState}`);
     
     if (document.visibilityState === 'visible') {
       console.log('[APP] App entered foreground, checking notifications');
       getPendingNotifications()
-        .then(notifications => {
+        .then((notifications) => {
           console.log(`[APP] Processing ${notifications.length} pending notifications`);
-          notifications.forEach(notification => {
+          notifications.forEach((notification) => {
             handleNotificationNavigation(navigate, notification);
           });
           return clearPendingNotifications();
         })
         .then(() => console.log('[APP] Notifications processed and cleared'))
-        .catch(error => console.error('[APP] Error processing notifications:', error));
+        .catch((error) => console.error('[APP] Error processing notifications:', error));
     }
   };
-
-
 
   useEffect(() => {
     requestFCMToken(navigate);
     document.addEventListener('visibilitychange', handleVisibilityChange);
     
+    // Listen for background messages forwarded from the service worker
+    navigator.serviceWorker.addEventListener('message', (event) => {
+      if (event.data?.type === 'FCM_BACKGROUND_MESSAGE') {
+        console.log('[APP] Background notification received from SW:', event.data.payload);
+      }
+    });
+    
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [navigate]);
-
 
   return <AppContent />;
 }
@@ -202,7 +186,7 @@ function AppWrapper() {
   return (
     <ThemeProvider>
       <Router>
-       <ScrollToTop />
+        <ScrollToTop />
         <App />
       </Router>
     </ThemeProvider>

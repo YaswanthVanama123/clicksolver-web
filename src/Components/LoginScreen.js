@@ -45,16 +45,21 @@ const LoginScreen = () => {
 
   return (
     <div className="relative min-h-screen bg-gray-100 dark:bg-gray-900">
-      {/* Background Image using inline style */}
+      {/* Background Image using inline style with stretch */}
       <div
-        className="absolute inset-0 bg-no-repeat bg-center bg-contain opacity-90"
-        style={{ backgroundImage: `url(${BG_IMAGE_URL})`, height: '100vh' }}
+        className="absolute inset-0 opacity-90"
+        style={{
+          backgroundImage: `url(${BG_IMAGE_URL})`,
+          backgroundSize: '100% 100%', // stretch the image to fill the viewport
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
       ></div>
 
       {/* Main Container */}
       <div className="relative z-10 flex flex-col min-h-screen">
         <div className="flex-grow flex items-center justify-center px-4">
-          <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+          <div className="w-full max-w-md dark:bg-gray-800 rounded-lg p-6">
             {/* Logo Section */}
             <div className="flex flex-col items-center mb-6">
               <img
@@ -74,7 +79,7 @@ const LoginScreen = () => {
             </div>
 
             {/* Input Container */}
-            <div className="flex flex-row items-center bg-white dark:bg-gray-700 rounded-lg border border-gray-300 dark:border-gray-600 shadow-md overflow-hidden mb-6 h-14">
+            <div className="flex flex-row items-center bg-white dark:bg-gray-700 rounded-lg border border-gray-300 dark:border-gray-600 overflow-hidden mb-6 h-14">
               {/* Country Code Box */}
               <div className="flex flex-row items-center border-r border-gray-300 dark:border-gray-600 px-3">
                 <img
@@ -101,7 +106,7 @@ const LoginScreen = () => {
             <button
               onClick={requestOtp}
               disabled={loading}
-              className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-lg font-semibold shadow-md"
+              className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-lg font-semibold"
             >
               {loading ? (
                 <div className="flex items-center justify-center">

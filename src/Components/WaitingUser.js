@@ -49,6 +49,7 @@ const WaitingUser = () => {
 
   // ------------------ Decode Encoded Data ------------------
   useEffect(() => {
+    console.log('[Decode Encoded] encodedData changed:', encodedData);
     if (
       encodedData &&
       ![
@@ -60,6 +61,7 @@ const WaitingUser = () => {
     ) {
       try {
         const decoded = Buffer.from(encodedData, 'base64').toString('utf-8');
+        console.log('[Decode Encoded] Decoded value:', decoded);
         setDecodedId(decoded);
       } catch (error) {
         console.error('Error decoding Base64:', error);
@@ -67,19 +69,22 @@ const WaitingUser = () => {
     }
   }, [encodedData]);
 
-    useEffect(() => {
-      const handlePopState = () => {
-        navigate('/', { replace: true });
-      };
-  
-      window.addEventListener('popstate', handlePopState);
-      return () => {
-        window.removeEventListener('popstate', handlePopState);
-      };
-    }, [navigate]); 
+  // ------------------ Handle Pop State ------------------
+  useEffect(() => {
+    const handlePopState = () => {
+      console.log('[PopState] Navigating to home due to pop state.');
+      navigate('/', { replace: true });
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [navigate]);
 
   // ------------------ Extract Route Parameters ------------------
   useEffect(() => {
+    console.log('[Extract Params] routeParams:', routeParams);
     const {
       area,
       city,
@@ -93,29 +98,68 @@ const WaitingUser = () => {
       offer,
       encodedId,
     } = routeParams;
-    if (city) setCity(city);
-    if (area) setArea(area);
-    if (pincode) setPincode(pincode);
-    if (alternateName) setAlternateName(alternateName);
-    if (alternatePhoneNumber) setAlternatePhoneNumber(alternatePhoneNumber);
-    if (serviceBooked) setService(serviceBooked);
-    if (location) setLocationCoords(location);
-    if (discount) setDiscount(discount);
-    if (tipAmount) setTipAmount(tipAmount);
-    if (offer) setOffer(offer);
+    
+    if (city) {
+      console.log('[Extract Params] Setting city:', city);
+      setCity(city);
+    }
+    if (area) {
+      console.log('[Extract Params] Setting area:', area);
+      setArea(area);
+    }
+    if (pincode) {
+      console.log('[Extract Params] Setting pincode:', pincode);
+      setPincode(pincode);
+    }
+    if (alternateName) {
+      console.log('[Extract Params] Setting alternateName:', alternateName);
+      setAlternateName(alternateName);
+    }
+    if (alternatePhoneNumber) {
+      console.log('[Extract Params] Setting alternatePhoneNumber:', alternatePhoneNumber);
+      setAlternatePhoneNumber(alternatePhoneNumber);
+    }
+    // Log serviceBooked even if null
+    console.log('[Extract Params] serviceBooked:', serviceBooked);
+    if (serviceBooked) {
+      setService(serviceBooked);
+    } else {
+      console.log('[Extract Params] serviceBooked is null or undefined.');
+    }
+    if (location) {
+      console.log('[Extract Params] Setting locationCoords:', location);
+      setLocationCoords(location);
+    }
+    if (discount) {
+      console.log('[Extract Params] Setting discount:', discount);
+      setDiscount(discount);
+    }
+    if (tipAmount) {
+      console.log('[Extract Params] Setting tipAmount:', tipAmount);
+      setTipAmount(tipAmount);
+    }
+    if (offer) {
+      console.log('[Extract Params] Setting offer:', offer);
+      setOffer(offer);
+    }
     if (encodedId) {
+      console.log('[Extract Params] Setting encodedId:', encodedId);
       setEncodedData(encodedId);
       try {
         const decoded = Buffer.from(encodedId, 'base64').toString('utf-8');
+        console.log('[Extract Params] Decoded encodedId:', decoded);
         setDecodedId(decoded);
       } catch (error) {
         console.error('Error decoding Base64:', error);
       }
     }
   }, [routeParams]);
+  
+  console.log('[Outside useEffect] routeParams:', routeParams);
 
   // ------------------ Fetch Data from Backend ------------------
   const fetchData = async () => {
+    console.log('[Fetch Data] Starting fetchData with routeParams:', routeParams);
     const {
       area,
       city,
@@ -128,20 +172,56 @@ const WaitingUser = () => {
       tipAmount,
       offer,
     } = routeParams;
-    if (city) setCity(city);
-    if (area) setArea(area);
-    if (pincode) setPincode(pincode);
-    if (alternateName) setAlternateName(alternateName);
-    if (alternatePhoneNumber) setAlternatePhoneNumber(alternatePhoneNumber);
-    if (serviceBooked) setService(serviceBooked);
-    if (location) setLocationCoords(location);
-    if (discount) setDiscount(discount);
-    if (tipAmount) setTipAmount(tipAmount);
-    if (offer) setOffer(offer);
+    
+    if (city) {
+      console.log('[Fetch Data] Setting city:', city);
+      setCity(city);
+    }
+    if (area) {
+      console.log('[Fetch Data] Setting area:', area);
+      setArea(area);
+    }
+    if (pincode) {
+      console.log('[Fetch Data] Setting pincode:', pincode);
+      setPincode(pincode);
+    }
+    if (alternateName) {
+      console.log('[Fetch Data] Setting alternateName:', alternateName);
+      setAlternateName(alternateName);
+    }
+    if (alternatePhoneNumber) {
+      console.log('[Fetch Data] Setting alternatePhoneNumber:', alternatePhoneNumber);
+      setAlternatePhoneNumber(alternatePhoneNumber);
+    }
+    console.log('[Fetch Data] serviceBooked:', serviceBooked);
+    if (serviceBooked) {
+      setService(serviceBooked);
+    } else {
+      console.log('[Fetch Data] serviceBooked is null or undefined.');
+    }
+    if (location) {
+      console.log('[Fetch Data] Setting locationCoords:', location);
+      setLocationCoords(location);
+    }
+    if (discount) {
+      console.log('[Fetch Data] Setting discount:', discount);
+      setDiscount(discount);
+    }
+    if (tipAmount) {
+      console.log('[Fetch Data] Setting tipAmount:', tipAmount);
+      setTipAmount(tipAmount);
+    }
+    if (offer) {
+      console.log('[Fetch Data] Setting offer:', offer);
+      setOffer(offer);
+    }
     setBackendLoading(true);
     try {
       const jwtToken = localStorage.getItem('cs_token');
-      if (!jwtToken) return;
+      if (!jwtToken) {
+        console.log('[Fetch Data] No JWT token found.');
+        return;
+      }
       const response = await axios.post(
         'https://backend.clicksolver.com/api/workers-nearby',
         {
@@ -150,13 +230,14 @@ const WaitingUser = () => {
           pincode,
           alternateName,
           alternatePhoneNumber,
-          serviceBooked: service,
+          serviceBooked: serviceBooked, // Using state value "service"
           discount,
           tipAmount,
           offer,
         },
         { headers: { Authorization: `Bearer ${jwtToken}` } }
       );
+      console.log('[Fetch Data] Response received:', response.data);
       if (response.status === 200) {
         const encode = response.data;
         setEncodedData(encode);
@@ -169,6 +250,7 @@ const WaitingUser = () => {
             'No workers match the requested subservices',
           ].includes(encode)
         ) {
+          console.log('[Fetch Data] Sending additional action with encodedId:', encode);
           await axios.post(
             'https://backend.clicksolver.com/api/user/action',
             {
@@ -193,11 +275,13 @@ const WaitingUser = () => {
       console.error('Error fetching nearby workers:', error);
     } finally {
       setBackendLoading(false);
+      console.log('[Fetch Data] Backend loading set to false.');
     }
   };
 
   useEffect(() => {
     const { encodedId } = routeParams;
+    console.log('[useEffect EncodedId] Checking for encodedId in routeParams:', encodedId);
     if (
       encodedId &&
       encodedData !== 'No workers found within 2 km radius' &&
@@ -205,34 +289,41 @@ const WaitingUser = () => {
       encodedData !== 'No Firestore location data for these workers' &&
       encodedData !== 'No workers match the requested subservices'
     ) {
+      console.log('[useEffect EncodedId] Setting encodedData from routeParams.');
       setEncodedData(encodedId);
       try {
         const decoded = Buffer.from(encodedId, 'base64').toString('utf-8');
+        console.log('[useEffect EncodedId] Decoded encodedId:', decoded);
         setDecodedId(decoded);
       } catch (error) {
         console.error('Error decoding Base64:', error);
       }
     } else {
+      console.log('[useEffect EncodedId] Calling fetchData as encodedId is not set properly.');
       fetchData();
     }
   }, [routeParams]);
 
   // ------------------ Cancellation Workflow ------------------
   const handleManualCancel = () => {
+    console.log('[Cancellation] Manual cancel triggered.');
     setModalVisible(true);
   };
 
   const handleSelectReason = (reason) => {
+    console.log('[Cancellation] Reason selected:', reason);
     setSelectedReason(reason);
     setModalVisible(false);
     setConfirmationModalVisible(true);
   };
 
   const handleCancelBooking = async () => {
+    console.log('[Cancellation] Booking cancellation initiated.');
     setConfirmationModalVisible(false);
     setBackendLoading(true);
     try {
       if (decodedId) {
+        console.log('[Cancellation] Sending cancellation for decodedId:', decodedId);
         await axios.post('https://backend.clicksolver.com/api/user/cancellation', {
           user_notification_id: decodedId,
           cancellation_reason: selectedReason,
@@ -252,13 +343,16 @@ const WaitingUser = () => {
       navigate('/', { replace: true });
     } finally {
       setBackendLoading(false);
+      console.log('[Cancellation] Backend loading set to false after cancellation.');
     }
   };
 
   const handleCancelAndRetry = async () => {
+    console.log('[Cancel & Retry] Attempting cancel and retry.');
     setBackendLoading(true);
     try {
       attemptCountRef.current += 1;
+      console.log('[Cancel & Retry] Current attempt count:', attemptCountRef.current);
       if (attemptCountRef.current > 3) {
         await axios.post('https://backend.clicksolver.com/api/user/cancellation', {
           user_notification_id: decodedId,
@@ -292,26 +386,35 @@ const WaitingUser = () => {
       console.error('Error in cancel and retry:', error);
     } finally {
       setBackendLoading(false);
+      console.log('[Cancel & Retry] Backend loading set to false after retry.');
     }
   };
 
   // ------------------ Timer ------------------
   useEffect(() => {
+    console.log('[Timer] Initializing timer with service:', service);
     const storedTime = localStorage.getItem(`estimatedTime${service}`);
     if (!storedTime) {
       const currentTime = Date.now();
       localStorage.setItem(`estimatedTime${service}`, currentTime.toString());
+      console.log('[Timer] No stored time, setting timeLeft to 600 seconds.');
       setTimeLeft(600);
     } else {
       const savedTime = parseInt(storedTime, 10);
       const currentTime = Date.now();
       const timeDifference = Math.floor((currentTime - savedTime) / 1000);
       const remainingTime = 600 - timeDifference;
+      console.log('[Timer] Retrieved stored time. Remaining time:', remainingTime);
       setTimeLeft(remainingTime > 0 ? remainingTime : 0);
     }
-    const timer = setInterval(() => setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0)), 1000);
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        const newTime = prev > 0 ? prev - 1 : 0;
+        return newTime;
+      });
+    }, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [service]);
 
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
@@ -322,6 +425,7 @@ const WaitingUser = () => {
   // ------------------ Initialize Ola Maps (Replacing Mapbox) ------------------
   useEffect(() => {
     if (!mapContainerRef.current) return;
+    console.log('[OlaMaps] Initializing map with locationCoords:', locationCoords);
     const olaMaps = new OlaMaps({ apiKey });
     const myMap = olaMaps.init({
       container: mapContainerRef.current,
@@ -330,6 +434,7 @@ const WaitingUser = () => {
       style: 'https://api.olamaps.io/tiles/vector/v1/styles/default-light-standard/style.json',
     });
     myMap.on('load', () => {
+      console.log('[OlaMaps] Map loaded.');
       // For demonstration, add a marker using an image URL.
       const markerEl = document.createElement('div');
       markerEl.className = 'w-10 h-10 bg-cover bg-center';

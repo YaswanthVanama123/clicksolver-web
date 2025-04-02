@@ -1,13 +1,14 @@
 // indexedDBHelpers.js
 
-// Helper function to open the database and create the object store if necessary
+// Open the database and create the object store if necessary
 export const openNotificationDB = () => {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open('notificationDB', 1);
+    // Bump version to 2 to force an upgrade if the store is missing
+    const request = indexedDB.open('notificationDB', 2);
 
     request.onupgradeneeded = (event) => {
       const db = event.target.result;
-      // Create the object store if it doesn't already exist
+      // Check if the object store already exists; if not, create it.
       if (!db.objectStoreNames.contains('pendingNotifications')) {
         db.createObjectStore('pendingNotifications', { keyPath: 'id', autoIncrement: true });
         console.log('[DB] Created object store: pendingNotifications');
@@ -26,6 +27,7 @@ export const openNotificationDB = () => {
   });
 };
 
+// Get all pending notifications from the object store
 export const getPendingNotifications = () => {
   console.log('[DB] Fetching pending notifications');
   return new Promise((resolve, reject) => {
@@ -49,6 +51,7 @@ export const getPendingNotifications = () => {
   });
 };
 
+// Clear all pending notifications from the object store
 export const clearPendingNotifications = () => {
   console.log('[DB] Clearing all notifications');
   return new Promise((resolve, reject) => {

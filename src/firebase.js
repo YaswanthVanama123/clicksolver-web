@@ -27,10 +27,10 @@ export const handleNotificationNavigation = (navigate, data) => {
 
   console.log(`[FCM] Navigating to: ${screen} with ID: ${notification_id}`);
   const encodedId = btoa(notification_id);
-  navigate(screen.toLowerCase() === 'home' ? '/' : screen, { 
-    state: { encodedId } 
-  });
-};
+  const targetPath = screen.toLowerCase() === 'home' ? '/' : screen;
+  navigate(targetPath, { state: { encodedId } });
+  
+}; 
 
 export const requestFCMToken = async (navigate) => {
   try {

@@ -180,32 +180,73 @@ function ServiceApp() {
   };
 
   // Render special offers with hidden scrollbar
-  const renderSpecialOffers = () => (
-    <div className="flex flex-nowrap overflow-x-auto whitespace-nowrap gap-4 hide-scrollbar">
-      {specialOffers.map((offer) => (
-        <div
-          key={offer.id}
-          className={`flex flex-row justify-between rounded-lg p-4 flex-shrink-0 ${offer.bgClass}`}
-          style={{ minWidth: '14rem' }}
-        >
-          <div className="w-2/3">
-            <p className={`text-4xl font-bold ${offer.textColor}`}>{offer.title}</p>
-            <p className="text-lg font-semibold text-gray-600">
-              {offer.subtitle}
-            </p>
-            <p className="text-sm text-gray-500">
-              {offer.description}
-            </p>
-          </div>
-          <img
-            src={offer.imageBACKENDAP}
-            alt="Offer"
-            className="w-36 h-36 object-contain self-end"
-          />
+// Inside your ServiceApp component:
+
+// Inside your ServiceApp component:
+
+const renderSpecialOffers = () => (
+  <div className="flex flex-nowrap overflow-x-auto whitespace-nowrap hide-scrollbar gap-4">
+    {specialOffers.map((offer) => (
+      <div
+        key={offer.id}
+        className={`
+          flex flex-row justify-between items-center
+          rounded-lg p-4 flex-shrink-0
+          ${offer.bgClass}
+          /* For small screens: 80% width with 10% margin for peek effect */
+          w-[85%] mr-[5%]
+          /* For medium+ screens: revert to auto width, no forced margin */
+          md:w-auto md:mr-0
+        `}
+        style={{ minWidth: '14rem' }} // Ensures a minimum width on larger screens
+      >
+        {/* Text Container */}
+        <div className="flex-1 mr-2">
+          <p
+            className={`
+              /* Smaller heading on small screens, bigger on md+ */
+              text-2xl md:text-4xl font-bold
+              ${offer.textColor}
+              whitespace-normal break-words
+            `}
+          >
+            {offer.title}
+          </p>
+          <p
+            className="
+              text-base md:text-lg font-semibold text-gray-600
+              whitespace-normal break-words
+            "
+          >
+            {offer.subtitle}
+          </p>
+          <p
+            className="
+              text-sm md:text-base text-gray-500
+              whitespace-normal break-words
+            "
+          >
+            {offer.description}
+          </p>
         </div>
-      ))}
-    </div>
-  );
+
+        {/* Image */}
+        <img
+          src={offer.imageBACKENDAP}
+          alt="Offer"
+          className="
+            self-end
+            /* Smaller image on small screens, bigger on md+ */
+            w-24 h-24 md:w-36 md:h-36
+            object-contain
+          "
+        />
+      </div>
+    ))}
+  </div>
+);
+
+
 
   // Render services
   const renderServices = () => {

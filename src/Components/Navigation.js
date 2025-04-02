@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import axios from 'axios';
 import polyline from '@mapbox/polyline';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -11,7 +11,10 @@ import { LuMessageCircleMore } from 'react-icons/lu';
 import { useTheme } from '../context/ThemeContext';
 import { useTranslation } from 'react-i18next';
 
-// Local assets – adjust paths as necessary
+// Import OlaMaps from the package
+import { OlaMaps } from 'olamaps-web-sdk';
+
+// Import marker images
 import startMarker from '../assets/start-marker.png';
 import endMarker from '../assets/end-marker.png';
 
@@ -21,10 +24,11 @@ const Navigation = () => {
   const navigate = useNavigate();
   const route = useLocation();
   const params = route.state || {};
+  const apiKey = 'q0k6sOfYNxdt3bGvqF6W1yvANHeVtrsu9T5KW9a4';
 
   // ========= STATE VARIABLES =========
   const [routeData, setRouteData] = useState(null);
-  const [locationDetails, setLocationDetails] = useState(null);
+  const [locationDetails, setLocationDetails] = useState(null); // { startPoint: [lng,lat], endPoint: [lng,lat] }
   const [decodedId, setDecodedId] = useState(null);
   const [encodedData, setEncodedData] = useState(null);
   const [addressDetails, setAddressDetails] = useState({});
@@ -52,16 +56,16 @@ const Navigation = () => {
     }
   }, [params]);
 
-    useEffect(() => {
-      const handlePopState = () => {
-        navigate('/', { replace: true });
-      };
-  
-      window.addEventListener('popstate', handlePopState);
-      return () => {
-        window.removeEventListener('popstate', handlePopState);
-      };
-    }, [navigate]);   
+  // ========= POPSTATE HANDLER =========
+  useEffect(() => {
+    const handlePopState = () => {
+      navigate('/', { replace: true });
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [navigate]);
 
   // ========= COUNTDOWN TIMER =========
   useEffect(() => {
@@ -146,7 +150,7 @@ const Navigation = () => {
   // ========= FETCH ROUTE USING OLA ROUTE API =========
   const fetchOlaRoute = useCallback(async (startPoint, endPoint) => {
     try {
-      const url = 'http://localhost:5000/api/route';
+      const url = 'https://backend.clicksolver.com/api/route'; // update with your backend endpoint
       const payload = { startPoint, endPoint };
       const response = await axios.post(url, payload);
       const encodedPolyline = response.data.routes?.[0]?.overview_polyline;
@@ -174,7 +178,11 @@ const Navigation = () => {
     async (startPoint, endPoint) => {
       try {
         const routeFeature = await fetchOlaRoute(startPoint, endPoint);
-        if (routeFeature && routeFeature.geometry && routeFeature.geometry.coordinates.length > 0) {
+        if (
+          routeFeature &&
+          routeFeature.geometry &&
+          routeFeature.geometry.coordinates.length > 0
+        ) {
           setRouteData(routeFeature);
         } else {
           console.error('Route data invalid:', routeFeature);
@@ -221,62 +229,52 @@ const Navigation = () => {
   useEffect(() => {
     const initializeMap = () => {
       try {
-        if (window.OlaMaps) {
-          const olaMaps = new window.OlaMaps({ apiKey: 'q0k6sOfYNxdt3bGvqF6W1yvANHeVtrsu9T5KW9a4' });
-          const map = olaMaps.init({
-            container: mapContainerRef.current,
-            center: locationDetails ? locationDetails.startPoint : [80.519353, 16.987142],
-            zoom: 9,
-            style: 'https://api.olamaps.io/tiles/vector/v1/styles/default-light-standard/style.json',
-          });
-          mapInstanceRef.current = map;
-  
-          // Add markers for start and end points
-          if (locationDetails) {
-            const startEl = document.createElement('img');
-            startEl.src = startMarker;
-            startEl.style.width = '32px';
-            startEl.style.height = '32px';
-            new window.OlaMaps.Marker({ element: startEl })
-              .setLngLat(locationDetails.startPoint)
-              .addTo(map);
-  
-            const endEl = document.createElement('img');
-            endEl.src = endMarker;
-            endEl.style.width = '32px';
-            endEl.style.height = '32px';
-            new window.OlaMaps.Marker({ element: endEl })
-              .setLngLat(locationDetails.endPoint)
-              .addTo(map);
-          }
-  
-          map.on('load', () => {
-            if (routeData) {
-              addRouteLayer(map, routeData);
-            }
-          });
-  
-          map.setCenter(locationDetails ? locationDetails.startPoint : [80.519353, 16.987142]);
-          map.setZoom(18);
-        } else {
-          console.error('Ola Maps SDK failed to load.');
+        const olaMaps = new OlaMaps({ apiKey });
+        const map = olaMaps.init({
+          container: mapContainerRef.current,
+          center: locationDetails ? locationDetails.startPoint : [80.519353, 16.987142],
+          zoom: 9,
+          style: 'https://api.olamaps.io/tiles/vector/v1/styles/default-light-standard/style.json',
+        });
+        mapInstanceRef.current = map;
+
+        // Add markers for start and end points if location details exist.
+        if (locationDetails) {
+          // Create start marker element
+          const startEl = document.createElement('img');
+          startEl.src = startMarker;
+          startEl.className = 'w-8 h-8';
+          olaMaps
+            .addMarker({ element: startEl, anchor: 'bottom', offset: [0, -10] })
+            .setLngLat(locationDetails.startPoint)
+            .addTo(map);
+
+          // Create end marker element
+          const endEl = document.createElement('img');
+          endEl.src = endMarker;
+          endEl.className = 'w-8 h-8';
+          olaMaps
+            .addMarker({ element: endEl, anchor: 'bottom', offset: [0, -10] })
+            .setLngLat(locationDetails.endPoint)
+            .addTo(map);
         }
+
+        map.on('load', () => {
+          if (routeData) {
+            addRouteLayer(map, routeData);
+          }
+        });
+        map.setCenter(locationDetails ? locationDetails.startPoint : [80.519353, 16.987142]);
+        map.setZoom(18);
       } catch (error) {
         console.error('Error during OlaMaps initialization:', error);
       }
     };
-  
-    if (!window.OlaMaps) {
-      const script = document.createElement('script');
-      script.src = 'https://www.unpkg.com/olamaps-web-sdk@latest/dist/olamaps-web-sdk.umd.js';
-      script.async = true;
-      script.onload = initializeMap;
-      script.onerror = () => console.error('Failed to load OlaMaps SDK.');
-      document.head.appendChild(script);
-    } else {
+
+    if (locationDetails) {
       initializeMap();
     }
-  }, [locationDetails, routeData]);
+  }, [locationDetails, routeData, apiKey]);
 
   // ========= UPDATE ROUTE ON MAP WHEN routeData CHANGES =========
   useEffect(() => {
@@ -332,15 +330,13 @@ const Navigation = () => {
     });
   };
 
-  // ========= MODAL HANDLERS =========
   const closeModal = () => setModalVisible(false);
-  const openConfirmationModal = () => setConfirmationModalVisible(true);
   const closeConfirmationModal = () => setConfirmationModalVisible(false);
   const handleCancelModal = () => setModalVisible(true);
 
   const handleCancelBooking = useCallback(async () => {
-    setConfirmationModalVisible(false);
-    setModalVisible(false);
+    closeConfirmationModal();
+    closeModal();
     try {
       setIsLoading(true);
       const response = await axios.post(
@@ -369,7 +365,7 @@ const Navigation = () => {
   return (
     <div className={`relative min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`}>
       {/* Map Container */}
-      <div className="w-full h-[50vh]">
+      <div className="w-full h-[50vh] relative">
         {locationDetails ? (
           <div ref={mapContainerRef} className="w-full h-full" />
         ) : (
@@ -389,10 +385,7 @@ const Navigation = () => {
       </div>
 
       {/* Bottom Card */}
-      <div
-        className={`absolute bottom-0 w-full ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-t-2xl shadow-lg p-6`}
-        style={{ height: '50vh' }}
-      >
+      <div className={`absolute bottom-0 w-full ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-t-2xl shadow-lg p-6 h-[50vh]`}>
         {/* Drag Indicator */}
         <div className="flex justify-center mb-4">
           <div className="w-12 h-1 bg-gray-400 rounded-full"></div>
@@ -417,16 +410,16 @@ const Navigation = () => {
         <div className="flex">
           {/* Left Section: Services, PIN & Cancel */}
           <div className="flex-1 pr-4">
-            <div className="mb-4 overflow-y-auto" style={{ maxHeight: '8rem' }}>
+            <div className="mb-4 overflow-y-auto max-h-32">
               {serviceArray && serviceArray.map((item, index) => renderServiceItem(item, index))}
             </div>
             <div className="mb-4">
-              <p className={`text-sm ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>{t('pin') || 'PIN'}</p>
+              <p className="text-sm text-gray-800">{t('pin') || 'PIN'}</p>
               <div className="flex space-x-2 mt-1">
                 {pin.split('').map((digit, index) => (
                   <div
                     key={index}
-                    className={`w-8 h-8 border ${isDarkMode ? 'border-white' : 'border-gray-800'} rounded flex items-center justify-center`}
+                    className="w-8 h-8 border border-gray-800 rounded flex items-center justify-center"
                   >
                     <p className="text-sm">{digit}</p>
                   </div>
@@ -434,7 +427,7 @@ const Navigation = () => {
               </div>
             </div>
             <button
-              className={`w-full ${isDarkMode ? 'bg-gray-700' : 'bg-white'} rounded-md h-10 flex items-center justify-center border`}
+              className="w-full bg-white rounded-md h-10 flex items-center justify-center border"
               onClick={handleCancelModal}
             >
               <p className="text-xs text-gray-500">{t('cancel') || 'Cancel'}</p>
@@ -468,13 +461,13 @@ const Navigation = () => {
             )}
             <div className="flex space-x-2 mt-2">
               <button
-                className={`p-2 rounded-full ${isDarkMode ? 'bg-gray-600' : 'bg-gray-200'}`}
+                className="p-2 rounded-full bg-gray-200 dark:bg-gray-600"
                 onClick={() => (window.location.href = `tel:${addressDetails.phone_number || ''}`)}
               >
                 <IoMdCall size={18} className="text-[#FF5722]" />
               </button>
               <button
-                className={`p-2 rounded-full ${isDarkMode ? 'bg-gray-600' : 'bg-gray-200'}`}
+                className="p-2 rounded-full bg-gray-200 dark:bg-gray-600"
                 onClick={messageChatting}
               >
                 <LuMessageCircleMore size={18} className="text-[#FF5722]" />
@@ -486,21 +479,15 @@ const Navigation = () => {
 
       {/* Cancellation Reason Modal */}
       {modalVisible && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-end z-50"
-          onClick={() => setModalVisible(false)}
-        >
-          <div
-            className={`w-full p-6 rounded-t-2xl ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button onClick={closeModal} className="absolute top-4 left-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-end z-50" onClick={() => setModalVisible(false)}>
+          <div className="w-full p-6 rounded-t-2xl bg-white dark:bg-gray-800" onClick={(e) => e.stopPropagation()}>
+            <button onClick={() => setModalVisible(false)} className="absolute top-4 left-4">
               <AiOutlineArrowLeft size={20} className={`${isDarkMode ? 'text-white' : 'text-gray-900'}`} />
             </button>
-            <h2 className={`text-center text-lg font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
+            <h2 className="text-center text-lg font-bold mb-4 text-gray-800 dark:text-white">
               {t('cancellation_reason_title') || 'What is the reason for your cancellation?'}
             </h2>
-            <p className={`text-center text-sm mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+            <p className="text-center text-sm mb-4 text-gray-600 dark:text-gray-300">
               {t('cancellation_reason_subtitle') || "Could you let us know why you're canceling?"}
             </p>
             <div className="space-y-4">
@@ -510,7 +497,7 @@ const Navigation = () => {
                   className="flex justify-between items-center w-full"
                   onClick={() => setConfirmationModalVisible(true)}
                 >
-                  <span className={`text-base ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>
+                  <span className="text-base text-gray-800 dark:text-white">
                     {t(key) || key.replace('_', ' ')}
                   </span>
                   <FaAngleRight size={16} className={`${isDarkMode ? 'text-gray-300' : 'text-gray-400'}`} />
@@ -524,14 +511,14 @@ const Navigation = () => {
       {/* Confirmation Modal */}
       {confirmationModalVisible && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-end z-50">
-          <div className={`w-full p-6 rounded-t-2xl relative ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
-            <button onClick={closeConfirmationModal} className="absolute top-4 right-4">
+          <div className="w-full p-6 rounded-t-2xl relative bg-white dark:bg-gray-800">
+            <button onClick={() => setConfirmationModalVisible(false)} className="absolute top-4 right-4">
               <RxCrossCircled size={20} className={`${isDarkMode ? 'text-white' : 'text-gray-900'}`} />
             </button>
-            <h2 className={`text-center text-lg font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
+            <h2 className="text-center text-lg font-bold mb-4 text-gray-800 dark:text-white">
               {t('confirmation_title') || 'Are you sure you want to cancel this Service?'}
             </h2>
-            <p className={`text-center text-sm my-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+            <p className="text-center text-sm my-4 text-gray-600 dark:text-gray-300">
               {t('confirmation_subtitle') ||
                 'Please avoid canceling – we’re working to connect you with the best expert to solve your problem.'}
             </p>
@@ -547,12 +534,7 @@ const Navigation = () => {
         </div>
       )}
 
-      {/* Crosshairs Button */}
-      <div className={`fixed right-5 ${'bottom-[290px]'} ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-full p-3 shadow-md`}>
-        <button onClick={() => { /* extra tap handler if needed */ }}>
-          <FaCrosshairs size={24} className={`${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`} />
-        </button>
-      </div>
+
     </div>
   );
 };

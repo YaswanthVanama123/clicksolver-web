@@ -175,21 +175,8 @@ const SingleService = () => {
 
   return (
     <div className={`${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'} min-h-screen`}>
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 sticky top-0 z-50">
-        <button onClick={handleBackPress} className="p-2">
-          <IoIosArrowBack size={24} color={isDarkMode ? '#fff' : '#000'} />
-        </button>
-        <h1 className="text-xl font-bold text-center flex-1 mx-4" style={{ color: isDarkMode ? '#fff' : '#2d3748' }}>
-          {t(`IndivService_${id}`) || serviceName}
-        </h1>
-        <button onClick={handleSearch} className="p-2">
-          <FiSearch size={24} color={isDarkMode ? '#fff' : '#000'} />
-        </button>
-      </div>
-
-      {/* Service Banner */}
-      <div className="mx-4 my-4">
+      {/* Service Banner with overlaid icons */}
+      <div className="relative mx-4 my-4">
         {loading ? (
           <div className="flex justify-center items-center h-64">
             <Lottie animationData={singleCardAnim} loop style={{ width: 200, height: 200 }} />
@@ -207,6 +194,15 @@ const SingleService = () => {
             ))}
           </div>
         )}
+        {/* Overlay icons */}
+        <div className="absolute top-4 left-4 right-4 flex justify-between">
+          <button onClick={handleBackPress} className="p-2 bg-gray-800 bg-opacity-50 rounded-full">
+            <IoIosArrowBack size={24} color="#fff" />
+          </button>
+          <button onClick={handleSearch} className="p-2 bg-gray-800 bg-opacity-50 rounded-full">
+            <FiSearch size={24} color="#fff" />
+          </button>
+        </div>
       </div>
 
       {/* Service Details */}
@@ -220,7 +216,8 @@ const SingleService = () => {
       </div>
 
       {/* Services List */}
-      <div className="p-4">
+      {/* Added conditional bottom padding if cart is open */}
+      <div className={`p-4 ${totalAmount > 0 ? 'pb-24' : ''}`}>
         {loading ? (
           <div className="flex justify-center items-center h-40">
             <Lottie animationData={cardsLoading} loop style={{ width: 150, height: 150 }} />
@@ -253,9 +250,7 @@ const SingleService = () => {
                     <FiMinus size={18} />
                   </button>
                   <span className="mx-2">
-                    {quantities[srv.main_service_id] > 0
-                      ? quantities[srv.main_service_id]
-                      : t('add') || 'Add'}
+                    {quantities[srv.main_service_id] > 0 ? quantities[srv.main_service_id] : t('add') || 'Add'}
                   </span>
                   <button onClick={() => handleQuantityChange(srv.main_service_id, 1)}>
                     <FiPlus size={18} />
@@ -286,10 +281,7 @@ const SingleService = () => {
           <p className="text-lg font-bold" style={{ color: isDarkMode ? '#fff' : '#2d3748' }}>
             {t('total_amount') || 'Total:'} ₹{totalAmount}
           </p>
-          <button
-            onClick={handleBookNow}
-            className="bg-orange-500 text-white px-4 py-2 rounded"
-          >
+          <button onClick={handleBookNow} className="bg-orange-500 text-white px-4 py-2 rounded">
             {t('view_cart') || 'View Cart'}
           </button>
         </div>
@@ -301,10 +293,7 @@ const SingleService = () => {
           <div
             className={`w-full p-4 rounded-t-lg relative ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}`}
           >
-            <button
-              onClick={() => setModalVisible(false)}
-              className="absolute top-2 right-2 bg-gray-300 rounded-full p-2"
-            >
+            <button onClick={() => setModalVisible(false)} className="absolute top-2 right-2 bg-gray-300 rounded-full p-2">
               <IoClose size={20} />
             </button>
             <h2 className="text-xl font-bold mb-4">
@@ -314,11 +303,7 @@ const SingleService = () => {
               {bookedServices.map((srv, idx) => (
                 <div key={idx} className="flex items-center mb-4">
                   {srv.url ? (
-                    <img
-                      src={srv.url}
-                      alt="Service"
-                      className="w-20 h-20 object-cover rounded mr-4"
-                    />
+                    <img src={srv.url} alt="Service" className="w-20 h-20 object-cover rounded mr-4" />
                   ) : (
                     <div className="w-20 h-20 bg-gray-200 mr-4" />
                   )}
@@ -350,7 +335,6 @@ const SingleService = () => {
                 </div>
               ))}
             </div>
-
             <div className="flex items-center justify-between mt-4">
               <p className="text-lg font-bold" style={{ color: isDarkMode ? '#fff' : '#2d3748' }}>
                 {t('total_amount') || 'Total Amount:'} ₹{totalAmount}
@@ -360,10 +344,7 @@ const SingleService = () => {
                   <FaSpinner className="animate-spin" size={24} />
                 </div>
               ) : (
-                <button
-                  onClick={bookService}
-                  className="bg-orange-500 text-white px-4 py-2 rounded"
-                >
+                <button onClick={bookService} className="bg-orange-500 text-white px-4 py-2 rounded">
                   {t('view_cart') || 'View Cart'}
                 </button>
               )}
@@ -380,20 +361,13 @@ const SingleService = () => {
               {t('login_required') || 'Login Required'}
             </h3>
             <p className="text-sm mb-4">
-              {t('login_required_message') ||
-                'You need to log in to book services. Would you like to log in now?'}
+              {t('login_required_message') || 'You need to log in to book services. Would you like to log in now?'}
             </p>
             <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setLoginModalVisible(false)}
-                className="bg-gray-400 text-white px-4 py-2 rounded"
-              >
+              <button onClick={() => setLoginModalVisible(false)} className="bg-gray-400 text-white px-4 py-2 rounded">
                 {t('cancel') || 'Cancel'}
               </button>
-              <button
-                onClick={navigateToLogin}
-                className="bg-orange-500 text-white px-4 py-2 rounded"
-              >
+              <button onClick={navigateToLogin} className="bg-orange-500 text-white px-4 py-2 rounded">
                 {t('login') || 'Login'}
               </button>
             </div>

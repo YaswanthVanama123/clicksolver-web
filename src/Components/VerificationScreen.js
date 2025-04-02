@@ -12,8 +12,8 @@ const BG_IMAGE_URL = 'https://i.postimg.cc/zB1C8frj/Picsart-24-10-01-15-26-57-51
 const VerificationScreen = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  // Extract phoneNumber and verificationId passed via navigation state
-  const { phoneNumber, verificationId } = location.state || {};
+  // Extract phoneNumber and initial verificationId passed via navigation state
+  const { phoneNumber, verificationId: initialVerificationId } = location.state || {};
   const { isDarkMode } = useTheme();
   const { t } = useTranslation();
 
@@ -22,6 +22,8 @@ const VerificationScreen = () => {
   // OTP code state: an array of 4 digits
   const [code, setCode] = useState(['', '', '', '']);
   const [loading, setLoading] = useState(false);
+  // Store verificationId in state so it can be updated on resend
+  const [verificationId, setVerificationId] = useState(initialVerificationId);
 
   // Create refs for OTP inputs
   const inputs = useRef([]);
@@ -96,18 +98,49 @@ const VerificationScreen = () => {
     }
   };
 
+  // Resend OTP function
+  const resendOtp = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.post('https://backend.clicksolver.com/api/otp/send', {
+        mobileNumber: phoneNumber,
+      });
+      if (response.status === 200) {
+        // Update verificationId and reset timer
+        setVerificationId(response.data.verificationId);
+        setTimer(120);
+        // Clear OTP inputs
+        setCode(['', '', '', '']);
+        if (inputs.current[0]) {
+          inputs.current[0].focus();
+        }
+      } else {
+        console.error('Error resending OTP:', response.data);
+      }
+    } catch (error) {
+      console.error('Error resending OTP:', error);
+      alert('Failed to resend OTP. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="relative min-h-screen bg-gray-100">
-      {/* Background Image */}
-      <img
-        src={BG_IMAGE_URL}
-        alt="Background"
-        className="absolute inset-0 w-full h-full object-cover"
-      />
+      {/* Background Image using a div with stretch style */}
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage: `url(${BG_IMAGE_URL})`,
+          backgroundSize: '100% 100%', // stretch the image to fill the viewport
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      ></div>
 
       {/* Foreground Content */}
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4">
-        <div className="bg-white dark:bg-gray-800 bg-opacity-90 rounded-lg shadow-lg p-6 w-full max-w-md">
+        <div className="dark:bg-gray-800 bg-opacity-90 rounded-lg p-6 w-full max-w-md">
           <h1 className="text-2xl md:text-3xl font-bold mb-4 text-center text-gray-900 dark:text-white">
             Verification Code
           </h1>
@@ -141,11 +174,22 @@ const VerificationScreen = () => {
             {formattedTime()}
           </p>
 
+          {/* Resend Button (visible when timer is 0) */}
+          {timer === 0 && (
+            <button
+              onClick={resendOtp}
+              disabled={loading}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold shadow-md mb-4"
+            >
+              {loading ? 'Resending...' : 'Resend OTP'}
+            </button>
+          )}
+
           {/* Submit Button */}
           <button
             onClick={submitOtp}
             disabled={loading}
-            className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-lg font-semibold shadow-md mb-6"
+            className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-lg font-semibold mb-6"
           >
             {loading ? (
               <div className="flex items-center justify-center">
@@ -168,7 +212,7 @@ const VerificationScreen = () => {
               <FiFacebook size={20} color={isDarkMode ? '#fff' : '#9e9e9e'} />
               <FiInstagram size={20} color={isDarkMode ? '#fff' : '#9e9e9e'} />
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-300">Clicksolver@yahoo.com</p>
+            <p className="text-sm text-gray-600 dark:text-gray-300">customer.support@clicksolver.com</p>
           </div>
         </div>
       </div>
