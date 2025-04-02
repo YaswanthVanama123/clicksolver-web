@@ -67,6 +67,17 @@ const WaitingUser = () => {
     }
   }, [encodedData]);
 
+    useEffect(() => {
+      const handlePopState = () => {
+        navigate('/', { replace: true });
+      };
+  
+      window.addEventListener('popstate', handlePopState);
+      return () => {
+        window.removeEventListener('popstate', handlePopState);
+      };
+    }, [navigate]); 
+
   // ------------------ Extract Route Parameters ------------------
   useEffect(() => {
     const {

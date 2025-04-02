@@ -52,6 +52,17 @@ const Navigation = () => {
     }
   }, [params]);
 
+    useEffect(() => {
+      const handlePopState = () => {
+        navigate('/', { replace: true });
+      };
+  
+      window.addEventListener('popstate', handlePopState);
+      return () => {
+        window.removeEventListener('popstate', handlePopState);
+      };
+    }, [navigate]);   
+
   // ========= COUNTDOWN TIMER =========
   useEffect(() => {
     const timerId = setInterval(() => {

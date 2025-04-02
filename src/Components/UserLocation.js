@@ -84,6 +84,17 @@ const UserLocation = () => {
     return inside;
   };
 
+  useEffect(() => {
+    const handlePopState = () => {
+      navigate('/', { replace: true });
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [navigate]);  
+
   // Set service and discount from route params
   useEffect(() => {
     if (serviceName) {
@@ -383,7 +394,9 @@ const fetchAndSetPlaceDetails = useCallback(async (latitude, longitude) => {
 
     if (!hasError) {
       setShowMessageBox(false);
+      window.history.replaceState(null, '', '/userwaiting');
       navigate('/userwaiting', {
+        replace: true,
         state: {
           area,
           city,
@@ -397,6 +410,10 @@ const fetchAndSetPlaceDetails = useCallback(async (latitude, longitude) => {
           offer: offer || null,
         },
       });
+
+      // Immediately update the browser history entry.
+
+      
     }
   };
 

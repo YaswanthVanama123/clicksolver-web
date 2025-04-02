@@ -2,7 +2,6 @@
 import React, { useState, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import Lottie from 'lottie-react';
 import { useTheme } from '../context/ThemeContext';
 
 const BG_IMAGE_URL = 'https://i.postimg.cc/rFFQLGRh/Picsart-24-10-01-15-38-43-205.jpg';
@@ -46,12 +45,11 @@ const LoginScreen = () => {
 
   return (
     <div className="relative min-h-screen bg-gray-100 dark:bg-gray-900">
-      {/* Background Image */}
-      <img
-        src={BG_IMAGE_URL}
-        alt="Background"
-        className="absolute inset-0 w-full h-full object-cover opacity-90"
-      />
+      {/* Background Image using inline style */}
+      <div
+        className="absolute inset-0 bg-no-repeat bg-center bg-contain opacity-90"
+        style={{ backgroundImage: `url(${BG_IMAGE_URL})`, height: '100vh' }}
+      ></div>
 
       {/* Main Container */}
       <div className="relative z-10 flex flex-col min-h-screen">

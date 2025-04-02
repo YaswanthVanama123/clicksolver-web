@@ -64,6 +64,18 @@ const Payment = () => {
     }
   }, []);
 
+
+    useEffect(() => {
+      const handlePopState = () => {
+        navigate('/', { replace: true });
+      };
+  
+      window.addEventListener('popstate', handlePopState);
+      return () => {
+        window.removeEventListener('popstate', handlePopState);
+      };
+    }, [navigate]);  
+
   useEffect(() => {
     if (encodedId) {
       try {
