@@ -16,10 +16,7 @@ const UserLocation = () => {
   // State variables
   const [service, setService] = useState([]);
   const [discount, setDiscount] = useState(0);
-  // We'll use userLocation for marker position and backend data update.
   const [userLocation, setUserLocation] = useState(null); // [lng, lat]
-  // Flag to control map recentering.
-  const [shouldRecenter, setShouldRecenter] = useState(true);
   const [locationLoading, setLocationLoading] = useState(true);
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [inputText, setInputText] = useState(suggestion ? suggestion.title : '');
@@ -67,10 +64,9 @@ const UserLocation = () => {
         [17.006761409194525, 80.53093335197622],
       ],
     },
-    // ... add more zones if needed.
   ];
 
-  // Ray-casting algorithm to check if a point [lng, lat] is inside a polygon (given as [lat, lng])
+  // Ray-casting algorithm to check if a point is inside a polygon
   const isPointInPolygon = (point, polygon) => {
     const poly = polygon.map(coord => [coord[1], coord[0]]);
     const [x, y] = point;
@@ -78,15 +74,13 @@ const UserLocation = () => {
     for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
       const [xi, yi] = poly[i];
       const [xj, yj] = poly[j];
-      const intersect =
-        yi > y !== yj > y &&
-        x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
+      const intersect = yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
       if (intersect) inside = !inside;
     }
     return inside;
   };
 
-  // Browser back button handling
+  // Handle browser back button
   useEffect(() => {
     const handlePopState = () => {
       navigate('/', { replace: true });
@@ -95,7 +89,7 @@ const UserLocation = () => {
     return () => window.removeEventListener('popstate', handlePopState);
   }, [navigate]);
 
-  // Set service and discount from route params
+  // Set service and discount from route parameters
   useEffect(() => {
     if (serviceName) {
       setService(serviceName);
@@ -104,28 +98,25 @@ const UserLocation = () => {
   }, [locationRoute.state, serviceName, savings]);
 
   // Function to send location data to backend
-  const sendDataToServer = useCallback(
-    async (longitude, latitude) => {
-      try {
-        const token = localStorage.getItem('cs_token');
-        if (!token) {
-          console.error(t('no_token_found') || 'No token found');
-          return;
-        }
-        const response = await axios.post(
-          'https://backend.clicksolver.com/api/user/location',
-          { longitude: String(longitude), latitude: String(latitude) },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        if (response.status === 200) {
-          console.log(t('location_sent_successfully') || 'User location sent successfully');
-        }
-      } catch (error) {
-        console.error(t('failed_to_send_location') || 'Failed to send user location:', error);
+  const sendDataToServer = useCallback(async (longitude, latitude) => {
+    try {
+      const token = localStorage.getItem('cs_token');
+      if (!token) {
+        console.error(t('no_token_found') || 'No token found');
+        return;
       }
-    },
-    [t]
-  );
+      const response = await axios.post(
+        'https://backend.clicksolver.com/api/user/location',
+        { longitude: String(longitude), latitude: String(latitude) },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (response.status === 200) {
+        console.log(t('location_sent_successfully') || 'User location sent successfully');
+      }
+    } catch (error) {
+      console.error(t('failed_to_send_location') || 'Failed to send user location:', error);
+    }
+  }, [t]);
 
   // Reverse geocode via Ola Maps API
   const fetchAndSetPlaceDetails = useCallback(async (latitude, longitude) => {
@@ -138,17 +129,13 @@ const UserLocation = () => {
       if (response.data && response.data.results && response.data.results.length > 0) {
         const place = response.data.results[0];
         const addressComponents = place.address_components;
-        const fetchedPincode =
-          addressComponents.find(comp => comp.types.includes('postal_code'))?.long_name || '';
-        let fetchedCity =
-          addressComponents.find(comp => comp.types.includes('locality'))?.long_name || '';
+        const fetchedPincode = addressComponents.find(comp => comp.types.includes('postal_code'))?.long_name || '';
+        let fetchedCity = addressComponents.find(comp => comp.types.includes('locality'))?.long_name || '';
         if (!fetchedCity) {
-          fetchedCity =
-            addressComponents.find(comp => comp.types.includes('administrative_area_level_3'))?.long_name || '';
+          fetchedCity = addressComponents.find(comp => comp.types.includes('administrative_area_level_3'))?.long_name || '';
         }
         if (!fetchedCity) {
-          fetchedCity =
-            addressComponents.find(comp => comp.types.includes('administrative_area_level_2'))?.long_name || '';
+          fetchedCity = addressComponents.find(comp => comp.types.includes('administrative_area_level_2'))?.long_name || '';
         }
         const fetchedArea = place.formatted_address || '';
         console.log('Extracted Location Details:', { city: fetchedCity, area: fetchedArea, pincode: fetchedPincode });
@@ -170,7 +157,6 @@ const UserLocation = () => {
         const { latitude, longitude } = suggestion ? suggestion : position.coords;
         const newLoc = [longitude, latitude];
         setUserLocation(newLoc);
-        setShouldRecenter(true);
         sendDataToServer(longitude, latitude);
         fetchAndSetPlaceDetails(latitude, longitude);
         setLocationLoading(false);
@@ -183,23 +169,25 @@ const UserLocation = () => {
     );
   }, [suggestion, t, fetchAndSetPlaceDetails, sendDataToServer]);
 
-  // Initialize the map once
+  // Initialize the map once userLocation is set
   useEffect(() => {
     if (!userLocation) return;
-
+    console.log("Initializing Olamaps with center:", userLocation);
     olaMapsRef.current = new OlaMaps({ apiKey: 'q0k6sOfYNxdt3bGvqF6W1yvANHeVtrsu9T5KW9a4' });
     const myMap = olaMapsRef.current.init({
       container: mapContainerRef.current,
-      center: userLocation, // [lng, lat]
+      center: userLocation,
       zoom: 18,
       style: isDarkMode
         ? 'https://api.olamaps.io/tiles/vector/v1/styles/default-dark-standard/style.json'
         : 'https://api.olamaps.io/tiles/vector/v1/styles/default-light-standard/style.json',
     });
     mapInstanceRef.current = myMap;
-
+    myMap.on('error', (err) => {
+      console.error("Map error event fired:", err);
+    });
     myMap.on('load', () => {
-      // Add polygon geofences if needed
+      console.log("Map loaded successfully!");
       const features = polygonGeofences.map(fence => ({
         type: 'Feature',
         geometry: {
@@ -216,83 +204,55 @@ const UserLocation = () => {
         source: 'polygonGeofence',
         paint: { 'fill-color': 'rgba(240,240,240,0.4)' },
       });
-
-      // Create a red marker at the initial location
       markerRef.current = olaMapsRef.current
-        .addMarker({
-          color: 'red',
-          anchor: 'bottom',
-          offset: [0, -10],
-        })
+        .addMarker({ color: 'red', anchor: 'bottom', offset: [0, -10] })
         .setLngLat(userLocation)
         .addTo(myMap);
+      markerRef.current.setDraggable(true);
+      markerRef.current.on('dragend', () => {
+        const { lng, lat } = markerRef.current.getLngLat();
+        console.log("Marker dragend at:", lng, lat);
+        setUserLocation([lng, lat]);
+        sendDataToServer(lng, lat);
+        fetchAndSetPlaceDetails(lat, lng);
+      });
     });
-  }, [userLocation, isDarkMode, polygonGeofences]);
+  }, [userLocation, isDarkMode, polygonGeofences, sendDataToServer, fetchAndSetPlaceDetails]);
 
-  // Update the marker when userLocation changes.
-  // Recenter the map only if shouldRecenter is true.
-  useEffect(() => {
-    if (mapInstanceRef.current && userLocation) {
-      if (shouldRecenter) {
-        mapInstanceRef.current.setCenter(userLocation);
-        mapInstanceRef.current.setZoom(18);
-      }
-      if (markerRef.current) {
-        markerRef.current.setLngLat(userLocation);
-      } else if (olaMapsRef.current) {
-        markerRef.current = olaMapsRef.current
-          .addMarker({
-            color: 'red',
-            anchor: 'bottom',
-            offset: [0, -10],
-          })
-          .setLngLat(userLocation)
-          .addTo(mapInstanceRef.current);
-      }
-    }
-  }, [userLocation, shouldRecenter]);
-
-  // Handler for map click: update marker position, backend, and place details
-  // Set shouldRecenter to false so that the map does not re-center on tap.
+  // Attach click handler to update marker when the map is tapped
   useEffect(() => {
     if (!mapInstanceRef.current) return;
-    mapInstanceRef.current.on('click', e => {
+    mapInstanceRef.current.on('click', (e) => {
+      console.log("Map click event fired:", e);
       const { lng, lat } = e.lngLat;
+      console.log("Clicked coordinates:", lng, lat);
       const newLoc = [lng, lat];
-      // Do not recenter map when tapping on the map.
-      setShouldRecenter(false);
-      // Update marker position and fetch details
       setUserLocation(newLoc);
+      console.log("User location updated to:", newLoc);
       sendDataToServer(lng, lat);
+      console.log("Location data sent to backend for:", { lng, lat });
       fetchAndSetPlaceDetails(lat, lng);
+      console.log("Reverse geocode request sent for:", { lat, lng });
       if (markerRef.current) {
         markerRef.current.setLngLat(newLoc);
+        console.log("Marker moved to:", newLoc);
+      } else {
+        console.warn("Marker reference not available.");
       }
     });
   }, [fetchAndSetPlaceDetails, sendDataToServer]);
 
-  // Handler for crosshairs icon: recenter map and update marker/ data
+  // Crosshairs: recenter map to current location
   const handleCrosshairsPress = () => {
     navigator.geolocation.getCurrentPosition(
       position => {
         const { latitude, longitude } = position.coords;
         const newLoc = [longitude, latitude];
-        // Recenter map when pressing crosshairs.
-        setShouldRecenter(true);
         setUserLocation(newLoc);
         sendDataToServer(longitude, latitude);
         fetchAndSetPlaceDetails(latitude, longitude);
         if (markerRef.current) {
           markerRef.current.setLngLat(newLoc);
-        } else if (olaMapsRef.current && mapInstanceRef.current) {
-          markerRef.current = olaMapsRef.current
-            .addMarker({
-              color: 'red',
-              anchor: 'bottom',
-              offset: [0, -10],
-            })
-            .setLngLat(newLoc)
-            .addTo(mapInstanceRef.current);
         }
       },
       error => {
@@ -500,7 +460,9 @@ const UserLocation = () => {
       {/* Booking Card */}
       <div className={`absolute bottom-0 w-full p-4 rounded-t-2xl shadow-lg h-[30vh] ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
         <div className="h-full flex flex-col justify-between">
-          <div className="overflow-y-auto">{service.map((item, index) => renderServiceItem(item, index))}</div>
+          <div className="overflow-y-auto">
+            {service.map((item, index) => renderServiceItem(item, index))}
+          </div>
           <button onClick={handleConfirmLocation} className="w-full bg-orange-600 rounded-md py-3">
             {confirmLoading ? (
               <span className="text-white text-center">Loading...</span>

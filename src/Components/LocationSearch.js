@@ -92,7 +92,9 @@ const LocationSearch = () => {
           offer: offer || null,
           ...extraParams,
         },
+        replace: true,
       });
+      
     },
     [navigate, serviceName, savings, tipAmount, offer]
   );
