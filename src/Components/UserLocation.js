@@ -4,7 +4,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { FaArrowLeft, FaCrosshairs } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../context/ThemeContext';
-// Import the OlaMaps class directly
 import { OlaMaps } from 'olamaps-web-sdk';
 
 const UserLocation = () => {
@@ -14,10 +13,13 @@ const UserLocation = () => {
   const { isDarkMode } = useTheme();
   const { serviceName, savings, tipAmount, offer, suggestion } = locationRoute.state || {};
 
-  // State variables...
+  // State variables
   const [service, setService] = useState([]);
   const [discount, setDiscount] = useState(0);
+  // We'll use userLocation for marker position and backend data update.
   const [userLocation, setUserLocation] = useState(null); // [lng, lat]
+  // Flag to control map recentering.
+  const [shouldRecenter, setShouldRecenter] = useState(true);
   const [locationLoading, setLocationLoading] = useState(true);
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [inputText, setInputText] = useState(suggestion ? suggestion.title : '');
@@ -34,10 +36,11 @@ const UserLocation = () => {
   const [showMessageBox, setShowMessageBox] = useState(false);
   const [showOutOfPolygonModal, setShowOutOfPolygonModal] = useState(false);
 
-  // Refs for the map container, map instance and marker
+  // Refs for map container, map instance, and marker
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markerRef = useRef(null);
+  const olaMapsRef = useRef(null);
 
   // Example polygon geofences (coordinates as [lat, lng])
   const polygonGeofences = [
@@ -64,12 +67,11 @@ const UserLocation = () => {
         [17.006761409194525, 80.53093335197622],
       ],
     },
-    // ... other zones if needed.
+    // ... add more zones if needed.
   ];
 
-  // Ray-casting algorithm to check if point [lng, lat] is inside a polygon ([lat, lng] coordinates)
+  // Ray-casting algorithm to check if a point [lng, lat] is inside a polygon (given as [lat, lng])
   const isPointInPolygon = (point, polygon) => {
-    // Convert polygon coordinates from [lat, lng] to [lng, lat]
     const poly = polygon.map(coord => [coord[1], coord[0]]);
     const [x, y] = point;
     let inside = false;
@@ -84,16 +86,14 @@ const UserLocation = () => {
     return inside;
   };
 
+  // Browser back button handling
   useEffect(() => {
     const handlePopState = () => {
       navigate('/', { replace: true });
     };
-
     window.addEventListener('popstate', handlePopState);
-    return () => {
-      window.removeEventListener('popstate', handlePopState);
-    };
-  }, [navigate]);  
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [navigate]);
 
   // Set service and discount from route params
   useEffect(() => {
@@ -128,49 +128,49 @@ const UserLocation = () => {
   );
 
   // Reverse geocode via Ola Maps API
-// UserLocation.js - Corrected Version
-const fetchAndSetPlaceDetails = useCallback(async (latitude, longitude) => {
-  const apiKey = 'q0k6sOfYNxdt3bGvqF6W1yvANHeVtrsu9T5KW9a4';
-  const url = `https://api.olamaps.io/places/v1/reverse-geocode?latlng=${latitude},${longitude}&api_key=${apiKey}`;
-  try {
-    const response = await axios.get(url, {
-      headers: { 'X-Request-Id': `req-${Date.now()}` },
-    });
-    if (response.data && response.data.results && response.data.results.length > 0) {
-      const place = response.data.results[0];
-      const addressComponents = place.address_components;
-      const fetchedPincode =
-        addressComponents.find(comp => comp.types.includes('postal_code'))?.long_name || '';
-      let fetchedCity =
-        addressComponents.find(comp => comp.types.includes('locality'))?.long_name || '';
-      if (!fetchedCity) {
-        fetchedCity =
-          addressComponents.find(comp => comp.types.includes('administrative_area_level_3'))?.long_name || '';
+  const fetchAndSetPlaceDetails = useCallback(async (latitude, longitude) => {
+    const apiKey = 'q0k6sOfYNxdt3bGvqF6W1yvANHeVtrsu9T5KW9a4';
+    const url = `https://api.olamaps.io/places/v1/reverse-geocode?latlng=${latitude},${longitude}&api_key=${apiKey}`;
+    try {
+      const response = await axios.get(url, {
+        headers: { 'X-Request-Id': `req-${Date.now()}` },
+      });
+      if (response.data && response.data.results && response.data.results.length > 0) {
+        const place = response.data.results[0];
+        const addressComponents = place.address_components;
+        const fetchedPincode =
+          addressComponents.find(comp => comp.types.includes('postal_code'))?.long_name || '';
+        let fetchedCity =
+          addressComponents.find(comp => comp.types.includes('locality'))?.long_name || '';
+        if (!fetchedCity) {
+          fetchedCity =
+            addressComponents.find(comp => comp.types.includes('administrative_area_level_3'))?.long_name || '';
+        }
+        if (!fetchedCity) {
+          fetchedCity =
+            addressComponents.find(comp => comp.types.includes('administrative_area_level_2'))?.long_name || '';
+        }
+        const fetchedArea = place.formatted_address || '';
+        console.log('Extracted Location Details:', { city: fetchedCity, area: fetchedArea, pincode: fetchedPincode });
+        setCity(fetchedCity);
+        setArea(fetchedArea);
+        setPincode(fetchedPincode);
+      } else {
+        console.warn(t('no_address_found') || 'No address details found.');
       }
-      if (!fetchedCity) {
-        fetchedCity =
-          addressComponents.find(comp => comp.types.includes('administrative_area_level_2'))?.long_name || '';
-      }
-      const fetchedArea = place.formatted_address || '';
-      console.log('Extracted Location Details:', { city: fetchedCity, area: fetchedArea, pincode: fetchedPincode });
-      setCity(fetchedCity);
-      setArea(fetchedArea);
-      setPincode(fetchedPincode);
-    } else {
-      console.warn(t('no_address_found') || 'No address details found.');
+    } catch (error) {
+      console.error(t('failed_to_fetch_place_details') || 'Failed to fetch place details:', error);
     }
-  } catch (error) {
-    console.error(t('failed_to_fetch_place_details') || 'Failed to fetch place details:', error);
-  }
-}, [t]);
-
+  }, [t]);
 
   // Get user's current location via browser geolocation
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       position => {
         const { latitude, longitude } = suggestion ? suggestion : position.coords;
-        setUserLocation([longitude, latitude]); // [lng, lat]
+        const newLoc = [longitude, latitude];
+        setUserLocation(newLoc);
+        setShouldRecenter(true);
         sendDataToServer(longitude, latitude);
         fetchAndSetPlaceDetails(latitude, longitude);
         setLocationLoading(false);
@@ -183,22 +183,23 @@ const fetchAndSetPlaceDetails = useCallback(async (latitude, longitude) => {
     );
   }, [suggestion, t, fetchAndSetPlaceDetails, sendDataToServer]);
 
-  // Initialize Ola Maps using the imported SDK
+  // Initialize the map once
   useEffect(() => {
-    if (!userLocation) return; // Wait until we have a location
+    if (!userLocation) return;
 
-    const olaMaps = new OlaMaps({ apiKey: 'q0k6sOfYNxdt3bGvqF6W1yvANHeVtrsu9T5KW9a4' });
-    const myMap = olaMaps.init({
+    olaMapsRef.current = new OlaMaps({ apiKey: 'q0k6sOfYNxdt3bGvqF6W1yvANHeVtrsu9T5KW9a4' });
+    const myMap = olaMapsRef.current.init({
       container: mapContainerRef.current,
       center: userLocation, // [lng, lat]
-      zoom: 9,
-      style: 'https://api.olamaps.io/tiles/vector/v1/styles/default-light-standard/style.json',
+      zoom: 18,
+      style: isDarkMode
+        ? 'https://api.olamaps.io/tiles/vector/v1/styles/default-dark-standard/style.json'
+        : 'https://api.olamaps.io/tiles/vector/v1/styles/default-light-standard/style.json',
     });
     mapInstanceRef.current = myMap;
 
-    // Once map is loaded, add geofences and a red marker
     myMap.on('load', () => {
-      // Add polygon geofences
+      // Add polygon geofences if needed
       const features = polygonGeofences.map(fence => ({
         type: 'Feature',
         geometry: {
@@ -208,10 +209,7 @@ const fetchAndSetPlaceDetails = useCallback(async (latitude, longitude) => {
         properties: { id: fence.id },
       }));
       const geoJson = { type: 'FeatureCollection', features };
-      myMap.addSource('polygonGeofence', {
-        type: 'geojson',
-        data: geoJson,
-      });
+      myMap.addSource('polygonGeofence', { type: 'geojson', data: geoJson });
       myMap.addLayer({
         id: 'polygonGeofenceFill',
         type: 'fill',
@@ -219,72 +217,75 @@ const fetchAndSetPlaceDetails = useCallback(async (latitude, longitude) => {
         paint: { 'fill-color': 'rgba(240,240,240,0.4)' },
       });
 
-      // Add a red marker if we haven't created one yet
-      if (!markerRef.current) {
-        markerRef.current = olaMaps
+      // Create a red marker at the initial location
+      markerRef.current = olaMapsRef.current
+        .addMarker({
+          color: 'red',
+          anchor: 'bottom',
+          offset: [0, -10],
+        })
+        .setLngLat(userLocation)
+        .addTo(myMap);
+    });
+  }, [userLocation, isDarkMode, polygonGeofences]);
+
+  // Update the marker when userLocation changes.
+  // Recenter the map only if shouldRecenter is true.
+  useEffect(() => {
+    if (mapInstanceRef.current && userLocation) {
+      if (shouldRecenter) {
+        mapInstanceRef.current.setCenter(userLocation);
+        mapInstanceRef.current.setZoom(18);
+      }
+      if (markerRef.current) {
+        markerRef.current.setLngLat(userLocation);
+      } else if (olaMapsRef.current) {
+        markerRef.current = olaMapsRef.current
           .addMarker({
-            color: 'red',        // RED marker
+            color: 'red',
             anchor: 'bottom',
             offset: [0, -10],
           })
           .setLngLat(userLocation)
-          .addTo(myMap);
-      } else {
-        // Update the marker location if it already exists
-        markerRef.current.setLngLat(userLocation);
+          .addTo(mapInstanceRef.current);
       }
-
-      myMap.setCenter(userLocation);
-      myMap.setZoom(18);
-
-      // Update location on map click
-      myMap.on('click', e => {
-        const { lng, lat } = e.lngLat;
-        const newLocation = [lng, lat];
-        setUserLocation(newLocation);
-        sendDataToServer(lng, lat);
-        fetchAndSetPlaceDetails(lat, lng);
-
-        // If markerRef exists, just move it; otherwise create a new red marker
-        if (markerRef.current) {
-          markerRef.current.setLngLat(newLocation);
-        } else {
-          markerRef.current = olaMaps
-            .addMarker({
-              color: 'red',
-              anchor: 'bottom',
-              offset: [0, -10],
-            })
-            .setLngLat(newLocation)
-            .addTo(myMap);
-        }
-      });
-    });
-  }, [userLocation, fetchAndSetPlaceDetails, sendDataToServer]);
-
-  // Update map when userLocation changes
-  useEffect(() => {
-    if (mapInstanceRef.current && userLocation) {
-      mapInstanceRef.current.setCenter(userLocation);
-      mapInstanceRef.current.setZoom(18);
     }
-  }, [userLocation]);
+  }, [userLocation, shouldRecenter]);
 
-  // Crosshairs – re-fetch location
+  // Handler for map click: update marker position, backend, and place details
+  // Set shouldRecenter to false so that the map does not re-center on tap.
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
+    mapInstanceRef.current.on('click', e => {
+      const { lng, lat } = e.lngLat;
+      const newLoc = [lng, lat];
+      // Do not recenter map when tapping on the map.
+      setShouldRecenter(false);
+      // Update marker position and fetch details
+      setUserLocation(newLoc);
+      sendDataToServer(lng, lat);
+      fetchAndSetPlaceDetails(lat, lng);
+      if (markerRef.current) {
+        markerRef.current.setLngLat(newLoc);
+      }
+    });
+  }, [fetchAndSetPlaceDetails, sendDataToServer]);
+
+  // Handler for crosshairs icon: recenter map and update marker/ data
   const handleCrosshairsPress = () => {
-    setInputText('');
     navigator.geolocation.getCurrentPosition(
       position => {
         const { latitude, longitude } = position.coords;
         const newLoc = [longitude, latitude];
+        // Recenter map when pressing crosshairs.
+        setShouldRecenter(true);
         setUserLocation(newLoc);
         sendDataToServer(longitude, latitude);
         fetchAndSetPlaceDetails(latitude, longitude);
-
         if (markerRef.current) {
           markerRef.current.setLngLat(newLoc);
-        } else if (mapInstanceRef.current) {
-          markerRef.current = new OlaMaps({ apiKey: '...' }) // If you want to reuse the same instance, store 'olaMaps' above
+        } else if (olaMapsRef.current && mapInstanceRef.current) {
+          markerRef.current = olaMapsRef.current
             .addMarker({
               color: 'red',
               anchor: 'bottom',
@@ -301,7 +302,7 @@ const fetchAndSetPlaceDetails = useCallback(async (latitude, longitude) => {
     );
   };
 
-  // Confirm location and validate if it lies within any geofence
+  // Handler for confirming location
   const handleConfirmLocation = async () => {
     setConfirmLoading(true);
     if (userLocation) {
@@ -340,7 +341,7 @@ const fetchAndSetPlaceDetails = useCallback(async (latitude, longitude) => {
     setConfirmLoading(false);
   };
 
-  // "Remind Me" handler when location is out of service
+  // Handler for "Remind Me" when location is out of service
   const handleRemindMe = async () => {
     try {
       const token = localStorage.getItem('cs_token');
@@ -362,7 +363,7 @@ const fetchAndSetPlaceDetails = useCallback(async (latitude, longitude) => {
     }
   };
 
-  // Validate address details and navigate to the next page
+  // Handler for booking confirmation after filling address details
   const handleBookCommander = () => {
     let hasError = false;
     setCityError('');
@@ -410,13 +411,10 @@ const fetchAndSetPlaceDetails = useCallback(async (latitude, longitude) => {
           offer: offer || null,
         },
       });
-
-      // Immediately update the browser history entry.
-
-      
     }
   };
 
+  // Handler for back button press
   const handleBackPress = () => {
     navigate(-1);
   };
@@ -446,7 +444,9 @@ const fetchAndSetPlaceDetails = useCallback(async (latitude, longitude) => {
           <p className={`text-sm ${isDarkMode ? 'text-gray-100' : 'text-gray-800'} w-20`}>
             {t(`singleService_${item.main_service_id}`) || item.serviceName}
           </p>
-          <p className={`text-sm ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>₹{item.totalCost}</p>
+          <p className={`text-sm ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>
+            ₹{item.totalCost}
+          </p>
         </div>
       );
     }
@@ -456,11 +456,7 @@ const fetchAndSetPlaceDetails = useCallback(async (latitude, longitude) => {
     <div className={`relative min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`}>
       {/* Search Box */}
       <div className="absolute top-8 left-0 right-0 z-50 flex justify-center">
-        <div
-          className={`flex items-center rounded-lg w-11/12 shadow-md h-14 px-4 ${
-            isDarkMode ? 'bg-gray-800' : 'bg-white'
-          }`}
-        >
+        <div className={`flex items-center rounded-lg w-11/12 shadow-md h-14 px-4 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
           <button onClick={handleBackPress} className="mr-3">
             <FaArrowLeft size={18} className={`${isDarkMode ? 'text-white' : 'text-gray-500'}`} />
           </button>
@@ -473,14 +469,10 @@ const fetchAndSetPlaceDetails = useCallback(async (latitude, longitude) => {
             placeholder={t('search_location') || 'Search location ...'}
             value={inputText}
             onChange={e => setInputText(e.target.value)}
-            onFocus={() =>
-              navigate('/LocationSearch', { state: { serviceName, savings, tipAmount, offer } })
-            }
+            onFocus={() => navigate('/LocationSearch', { state: { serviceName, savings, tipAmount, offer } })}
           />
           <button onClick={() => {}} className="ml-2">
-            <span className="text-xl" style={{ color: isDarkMode ? 'white' : 'black' }}>
-              ♡
-            </span>
+            <span className="text-xl" style={{ color: isDarkMode ? 'white' : 'black' }}>♡</span>
           </button>
         </div>
       </div>
@@ -491,21 +483,22 @@ const fetchAndSetPlaceDetails = useCallback(async (latitude, longitude) => {
         {locationLoading && (
           <div
             className="absolute inset-0 flex justify-center items-center"
-            style={{
-              backgroundColor: isDarkMode ? 'rgba(55, 65, 81, 0.8)' : 'rgba(255,255,255,0.7)',
-            }}
+            style={{ backgroundColor: isDarkMode ? 'rgba(55, 65, 81, 0.8)' : 'rgba(255,255,255,0.7)' }}
           >
             <span style={{ color: isDarkMode ? 'white' : 'black' }}>Loading...</span>
           </div>
         )}
       </div>
 
+      {/* Crosshairs Button */}
+      <div className={`fixed right-5 bottom-[290px] rounded-full p-3 shadow-md`} style={{ backgroundColor: isDarkMode ? '#2D3748' : '#fff' }}>
+        <button onClick={handleCrosshairsPress}>
+          <FaCrosshairs size={24} style={{ color: isDarkMode ? '#A0AEC0' : '#555' }} />
+        </button>
+      </div>
+
       {/* Booking Card */}
-      <div
-        className={`absolute bottom-0 w-full p-4 rounded-t-2xl shadow-lg h-[30vh] ${
-          isDarkMode ? 'bg-gray-800' : 'bg-white'
-        }`}
-      >
+      <div className={`absolute bottom-0 w-full p-4 rounded-t-2xl shadow-lg h-[30vh] ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
         <div className="h-full flex flex-col justify-between">
           <div className="overflow-y-auto">{service.map((item, index) => renderServiceItem(item, index))}</div>
           <button onClick={handleConfirmLocation} className="w-full bg-orange-600 rounded-md py-3">
@@ -522,10 +515,7 @@ const fetchAndSetPlaceDetails = useCallback(async (latitude, longitude) => {
 
       {/* Out-of-Polygon Modal */}
       {showOutOfPolygonModal && (
-        <div
-          className="fixed inset-0 flex justify-center items-center z-50"
-          style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
-        >
+        <div className="fixed inset-0 flex justify-center items-center z-50" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
           <div className={`p-6 rounded-lg w-4/5 text-center ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
             <p className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'} mb-4`}>
               {t('location_not_serviceable') || 'Location Not Serviceable'}
@@ -535,10 +525,7 @@ const fetchAndSetPlaceDetails = useCallback(async (latitude, longitude) => {
                 `We are not in ${city || 'this'} location. Please choose another location or tap "Remind Me" to get a notification when service is available.`}
             </p>
             <div className="flex justify-around w-full">
-              <button
-                onClick={() => setShowOutOfPolygonModal(false)}
-                className="bg-gray-400 text-white px-4 py-2 rounded-md"
-              >
+              <button onClick={() => setShowOutOfPolygonModal(false)} className="bg-gray-400 text-white px-4 py-2 rounded-md">
                 {t('cancel') || 'Cancel'}
               </button>
               <button onClick={handleRemindMe} className="bg-orange-600 text-white px-4 py-2 rounded-md">
@@ -551,10 +538,7 @@ const fetchAndSetPlaceDetails = useCallback(async (latitude, longitude) => {
 
       {/* Message Box Modal */}
       {showMessageBox && (
-        <div
-          className="fixed inset-0 flex justify-center items-center z-50"
-          style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
-        >
+        <div className="fixed inset-0 flex justify-center items-center z-50" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
           <div className={`p-6 rounded-lg w-4/5 relative ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
             {confirmLoading ? (
               <div className="flex flex-col items-center">
@@ -565,16 +549,11 @@ const fetchAndSetPlaceDetails = useCallback(async (latitude, longitude) => {
               </div>
             ) : (
               <>
-                <p
-                  className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'} mb-4`}
-                >
+                <p className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'} mb-4`}>
                   {t('enter_complete_address') || 'Enter complete address!'}
                 </p>
                 <div className="mb-2">
-                  <label
-                    className="block text-sm"
-                    style={{ color: isDarkMode ? 'lightgray' : 'gray' }}
-                  >
+                  <label className="block text-sm" style={{ color: isDarkMode ? 'lightgray' : 'gray' }}>
                     {t('city') || 'City'}
                   </label>
                   <input
@@ -591,10 +570,7 @@ const fetchAndSetPlaceDetails = useCallback(async (latitude, longitude) => {
                   {cityError && <p className="text-red-500 text-xs">{cityError}</p>}
                 </div>
                 <div className="mb-2">
-                  <label
-                    className="block text-sm"
-                    style={{ color: isDarkMode ? 'lightgray' : 'gray' }}
-                  >
+                  <label className="block text-sm" style={{ color: isDarkMode ? 'lightgray' : 'gray' }}>
                     {t('area') || 'Area'}
                   </label>
                   <input
@@ -611,10 +587,7 @@ const fetchAndSetPlaceDetails = useCallback(async (latitude, longitude) => {
                   {areaError && <p className="text-red-500 text-xs">{areaError}</p>}
                 </div>
                 <div className="mb-2">
-                  <label
-                    className="block text-sm"
-                    style={{ color: isDarkMode ? 'lightgray' : 'gray' }}
-                  >
+                  <label className="block text-sm" style={{ color: isDarkMode ? 'lightgray' : 'gray' }}>
                     {t('pincode') || 'Pincode'}
                   </label>
                   <input
@@ -631,10 +604,7 @@ const fetchAndSetPlaceDetails = useCallback(async (latitude, longitude) => {
                   {pincodeError && <p className="text-red-500 text-xs">{pincodeError}</p>}
                 </div>
                 <div className="mb-2">
-                  <label
-                    className="block text-sm"
-                    style={{ color: isDarkMode ? 'lightgray' : 'gray' }}
-                  >
+                  <label className="block text-sm" style={{ color: isDarkMode ? 'lightgray' : 'gray' }}>
                     {t('phone_number') || 'Phone number'}
                   </label>
                   <input
@@ -651,10 +621,7 @@ const fetchAndSetPlaceDetails = useCallback(async (latitude, longitude) => {
                   {phoneError && <p className="text-red-500 text-xs">{phoneError}</p>}
                 </div>
                 <div className="mb-2">
-                  <label
-                    className="block text-sm"
-                    style={{ color: isDarkMode ? 'lightgray' : 'gray' }}
-                  >
+                  <label className="block text-sm" style={{ color: isDarkMode ? 'lightgray' : 'gray' }}>
                     {t('name') || 'Name'}
                   </label>
                   <input
@@ -673,11 +640,7 @@ const fetchAndSetPlaceDetails = useCallback(async (latitude, longitude) => {
                 <button onClick={handleBookCommander} className="w-full bg-orange-600 py-3 rounded-md mt-4">
                   <span className="text-white text-lg">{t('book_commander') || 'Book Commander'}</span>
                 </button>
-                <button
-                  onClick={() => setShowMessageBox(false)}
-                  className="absolute top-2 right-2 text-xl"
-                  style={{ color: isDarkMode ? 'white' : 'black' }}
-                >
+                <button onClick={() => setShowMessageBox(false)} className="absolute top-2 right-2 text-xl" style={{ color: isDarkMode ? 'white' : 'black' }}>
                   ×
                 </button>
               </>
@@ -685,16 +648,6 @@ const fetchAndSetPlaceDetails = useCallback(async (latitude, longitude) => {
           </div>
         </div>
       )}
-
-      {/* Crosshairs Button */}
-      <div
-        className={`fixed right-5 bottom-[290px] rounded-full p-3 shadow-md`}
-        style={{ backgroundColor: isDarkMode ? '#2D3748' : '#fff' }}
-      >
-        <button onClick={handleCrosshairsPress}>
-          <FaCrosshairs size={24} style={{ color: isDarkMode ? '#A0AEC0' : '#555' }} />
-        </button>
-      </div>
     </div>
   );
 };
