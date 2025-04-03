@@ -1,7 +1,6 @@
-// LoginScreen.js
 import React, { useState, useCallback } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 
 const BG_IMAGE_URL = 'https://i.postimg.cc/rFFQLGRh/Picsart-24-10-01-15-38-43-205.jpg';
@@ -12,9 +11,9 @@ const LoginScreen = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  // Although we can use isDarkMode from context, Tailwind's dark mode variants will work 
-  // if the "dark" class is set on the root element.
-  // const { isDarkMode } = useTheme();
+  const location = useLocation();
+  // Retrieve optional serviceName from location state if available
+  const serviceName = location.state?.serviceName;
 
   // Request OTP function
   const requestOtp = useCallback(async () => {
@@ -30,8 +29,8 @@ const LoginScreen = () => {
       );
       if (response.status === 200) {
         const { verificationId } = response.data;
-        // Navigate to Verification Screen and pass state
-        navigate('/verification', { state: { phoneNumber, verificationId } });
+        // Pass phoneNumber, verificationId, and serviceName (if exists) to the verification screen
+        navigate('/verification', { state: { phoneNumber, verificationId, serviceName } });
       } else {
         console.error('Error sending OTP:', response.data);
       }
@@ -41,16 +40,16 @@ const LoginScreen = () => {
     } finally {
       setLoading(false);
     }
-  }, [phoneNumber, navigate]);
+  }, [phoneNumber, navigate, serviceName]);
 
   return (
     <div className="relative min-h-screen bg-gray-100 dark:bg-gray-900">
-      {/* Background Image using inline style with stretch */}
+      {/* Background Image */}
       <div
         className="absolute inset-0 opacity-90"
         style={{
           backgroundImage: `url(${BG_IMAGE_URL})`,
-          backgroundSize: '100% 100%', // stretch the image to fill the viewport
+          backgroundSize: '100% 100%',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat'
         }}

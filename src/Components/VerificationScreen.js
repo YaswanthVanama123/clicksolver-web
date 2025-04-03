@@ -1,4 +1,3 @@
-// VerificationScreen.js
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -6,29 +5,23 @@ import { FiMail, FiFacebook, FiInstagram } from 'react-icons/fi';
 import { useTheme } from '../context/ThemeContext';
 import { useTranslation } from 'react-i18next';
 
-// Example background image URL
 const BG_IMAGE_URL = 'https://i.postimg.cc/zB1C8frj/Picsart-24-10-01-15-26-57-512-1.jpg';
 
 const VerificationScreen = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  // Extract phoneNumber and initial verificationId passed via navigation state
-  const { phoneNumber, verificationId: initialVerificationId } = location.state || {};
+  // Extract phoneNumber, initial verificationId, and optional serviceName from location state
+  const { phoneNumber, verificationId: initialVerificationId, serviceName } = location.state || {};
   const { isDarkMode } = useTheme();
   const { t } = useTranslation();
 
-  // Timer state (2 minutes countdown)
   const [timer, setTimer] = useState(120);
-  // OTP code state: an array of 4 digits
   const [code, setCode] = useState(['', '', '', '']);
   const [loading, setLoading] = useState(false);
-  // Store verificationId in state so it can be updated on resend
   const [verificationId, setVerificationId] = useState(initialVerificationId);
 
-  // Create refs for OTP inputs
   const inputs = useRef([]);
 
-  // Countdown timer effect
   useEffect(() => {
     const countdown = setInterval(() => {
       setTimer(prev => (prev > 0 ? prev - 1 : 0));
@@ -36,14 +29,12 @@ const VerificationScreen = () => {
     return () => clearInterval(countdown);
   }, []);
 
-  // Format timer as mm:ss
   const formattedTime = () => {
     const minutes = Math.floor(timer / 60);
     const seconds = timer % 60;
     return `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
   };
 
-  // Handle OTP input change
   const handleChangeText = (value, index) => {
     const newCode = [...code];
     newCode[index] = value;
@@ -53,7 +44,6 @@ const VerificationScreen = () => {
     }
   };
 
-  // Handle key press for backspace navigation
   const handleKeyDown = (e, index) => {
     if (e.key === 'Backspace' && code[index] === '' && index > 0 && inputs.current[index - 1]) {
       inputs.current[index - 1].focus();
@@ -63,7 +53,6 @@ const VerificationScreen = () => {
     }
   };
 
-  // Submit OTP validation
   const submitOtp = async () => {
     const otpCode = code.join('');
     if (otpCode.length < 4) {
@@ -82,10 +71,16 @@ const VerificationScreen = () => {
         if (loginResponse.status === 200) {
           const { token } = loginResponse.data;
           localStorage.setItem('cs_token', token);
-          // Reset navigation to the home screen (adjust as needed)
-          navigate('/', { replace: true });
+          // Navigate to the home screen and pass the serviceName if available
+          if(serviceName){
+            navigate('/serviceBooking', { replace: true, state: { serviceName } });
+          }else{
+            navigate('/');
+          }
+
         } else if (loginResponse.status === 205) {
-          navigate('/signup-details', { state: { phone_number: phoneNumber } });
+          // Navigate to signup-details and pass phone number and serviceName (if available)
+          navigate('/SignUpScreen', { state: { phone_number: phoneNumber, serviceName } });
         }
       } else {
         alert('Invalid OTP, please try again.');
@@ -98,7 +93,6 @@ const VerificationScreen = () => {
     }
   };
 
-  // Resend OTP function
   const resendOtp = async () => {
     setLoading(true);
     try {
@@ -106,10 +100,8 @@ const VerificationScreen = () => {
         mobileNumber: phoneNumber,
       });
       if (response.status === 200) {
-        // Update verificationId and reset timer
         setVerificationId(response.data.verificationId);
         setTimer(120);
-        // Clear OTP inputs
         setCode(['', '', '', '']);
         if (inputs.current[0]) {
           inputs.current[0].focus();
@@ -127,18 +119,16 @@ const VerificationScreen = () => {
 
   return (
     <div className="relative min-h-screen bg-gray-100">
-      {/* Background Image using a div with stretch style */}
       <div
         className="absolute inset-0"
         style={{
           backgroundImage: `url(${BG_IMAGE_URL})`,
-          backgroundSize: '100% 100%', // stretch the image to fill the viewport
+          backgroundSize: '100% 100%',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat'
         }}
       ></div>
 
-      {/* Foreground Content */}
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4">
         <div className="dark:bg-gray-800 bg-opacity-90 rounded-lg p-6 w-full max-w-md">
           <h1 className="text-2xl md:text-3xl font-bold mb-4 text-center text-gray-900 dark:text-white">
@@ -151,7 +141,6 @@ const VerificationScreen = () => {
             {phoneNumber}
           </p>
 
-          {/* OTP Inputs */}
           <div className="flex justify-center space-x-2 mb-4">
             {code.map((digit, index) => (
               <input
@@ -169,12 +158,10 @@ const VerificationScreen = () => {
             ))}
           </div>
 
-          {/* Timer */}
           <p className="text-xl font-bold text-center text-gray-900 dark:text-white mb-4">
             {formattedTime()}
           </p>
 
-          {/* Resend Button (visible when timer is 0) */}
           {timer === 0 && (
             <button
               onClick={resendOtp}
@@ -185,7 +172,6 @@ const VerificationScreen = () => {
             </button>
           )}
 
-          {/* Submit Button */}
           <button
             onClick={submitOtp}
             disabled={loading}
@@ -204,7 +190,6 @@ const VerificationScreen = () => {
             )}
           </button>
 
-          {/* Contact Section */}
           <div className="text-center">
             <p className="text-base md:text-lg text-gray-900 dark:text-white mb-2">Contact us:</p>
             <div className="flex justify-center space-x-2 mb-2">

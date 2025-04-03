@@ -158,10 +158,12 @@ const SingleService = () => {
     }
   };
 
+
   const navigateToLogin = () => {
     setLoginModalVisible(false);
-    navigate('/login');
+    navigate('/login', { state: { serviceName } });
   };
+  
 
   // Navigation: Back button handler
   const handleBackPress = () => {
@@ -176,7 +178,7 @@ const SingleService = () => {
   return (
     <div className={`${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'} min-h-screen`}>
       {/* Service Banner with overlaid icons */}
-      <div className="relative mx-4 my-4">
+      <div className="relative mx-4">
         {loading ? (
           <div className="flex justify-center items-center h-64">
             <Lottie animationData={singleCardAnim} loop style={{ width: 200, height: 200 }} />

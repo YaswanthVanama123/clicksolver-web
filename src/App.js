@@ -41,6 +41,7 @@ import SearchItem from './Components/SearchItem';
 import { getPendingNotifications, clearPendingNotifications } from './indexedDBHelpers';
 import ScrollToTop from './Components/ScrollToTop';
 import PrivacyPolicyPage from './Components/PrivacyPolicyPage';
+import SignUpScreen from './Components/SignUpScreen';
 
 // --- TabNavigator Component ---
 function TabNavigator() {
@@ -107,6 +108,7 @@ function AppContent() {
       <div className={`${showTabs ? 'pb-16' : ''} overflow-hidden`}>
         <Routes>
           <Route path="/" element={<ServiceApp />} />
+          <Route path="/SignUpScreen" element={<SignUpScreen />} />
           <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
           <Route path="/search" element={<SearchItem />} />
           <Route path="/ServiceTrackingItem" element={<ServiceTrackingItemScreen />} />
