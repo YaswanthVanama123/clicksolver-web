@@ -13,6 +13,13 @@ const UserLocation = () => {
   const { isDarkMode } = useTheme();
   const { serviceName, savings, tipAmount, offer, suggestion } = locationRoute.state || {};
 
+  useEffect(() => {
+    if (!serviceName) {
+      window.location.replace("/");
+    }
+  }, [serviceName]);
+  
+
   // State variables
   const [service, setService] = useState([]);
   const [discount, setDiscount] = useState(0);

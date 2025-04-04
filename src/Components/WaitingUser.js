@@ -22,6 +22,14 @@ const WaitingUser = () => {
   const routeParams = locationRoute.state || {};
   const apiKey = 'q0k6sOfYNxdt3bGvqF6W1yvANHeVtrsu9T5KW9a4';
 
+
+   // Force full redirection if route parameters are missing
+   useEffect(() => {
+    if (!routeParams || Object.keys(routeParams).length === 0) {
+      window.location.replace("/");
+    }
+  }, [routeParams]);
+
   const [decodedId, setDecodedId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState('waiting');

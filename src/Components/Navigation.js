@@ -26,6 +26,13 @@ const Navigation = () => {
   const params = route.state || {};
   const apiKey = 'q0k6sOfYNxdt3bGvqF6W1yvANHeVtrsu9T5KW9a4';
 
+  // Force redirection if required parameters are missing
+  useEffect(() => {
+    if (!params || Object.keys(params).length === 0) {
+      window.location.replace("/");
+    }
+  }, [params]);
+
   // ========= STATE VARIABLES =========
   const [routeData, setRouteData] = useState(null);
   const [locationDetails, setLocationDetails] = useState(null); // { startPoint: [lng,lat], endPoint: [lng,lat] }

@@ -42,9 +42,11 @@ import { getPendingNotifications, clearPendingNotifications } from './indexedDBH
 import ScrollToTop from './Components/ScrollToTop';
 import PrivacyPolicyPage from './Components/PrivacyPolicyPage';
 import SignUpScreen from './Components/SignUpScreen';
+import { useTranslation } from 'react-i18next';
 
 // --- TabNavigator Component ---
 function TabNavigator() {
+  const { t } = useTranslation();
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 shadow py-2 flex justify-around">
       <NavLink
@@ -57,7 +59,7 @@ function TabNavigator() {
         }
       >
         <FaHome size={24} />
-        <span className="text-xs">Home</span>
+        <span className="text-xs">{t('tab_home') || 'Home'}</span>
       </NavLink>
       <NavLink
         to="/bookings"
@@ -68,7 +70,7 @@ function TabNavigator() {
         }
       >
         <FaClipboard size={24} />
-        <span className="text-xs">Bookings</span>
+        <span className="text-xs">{t('tab_bookings') || 'Bookings'}</span>
       </NavLink>
       <NavLink
         to="/tracking"
@@ -79,7 +81,7 @@ function TabNavigator() {
         }
       >
         <FaWallet size={24} />
-        <span className="text-xs">Tracking</span>
+        <span className="text-xs">{t('tab_tracking') || 'Tracking'}</span>
       </NavLink>
       <NavLink
         to="/account"
@@ -90,7 +92,7 @@ function TabNavigator() {
         }
       >
         <FaUser size={24} />
-        <span className="text-xs">Account</span>
+        <span className="text-xs">{t('tab_account') || 'Account'}</span>
       </NavLink>
     </div>
   );

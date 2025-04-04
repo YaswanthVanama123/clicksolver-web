@@ -14,6 +14,15 @@ const ServiceInProgressScreen = () => {
   const { t } = useTranslation();
   const { isDarkMode } = useTheme();
 
+
+    // Force redirection if required parameters are missing
+    useEffect(() => {
+      if (!location.state || !location.state.encodedId) {
+        window.location.replace("/");
+      }
+    }, [location.state]);
+  
+
   // Assume encodedId is passed via location.state
   const { encodedId } = location.state || {};
 

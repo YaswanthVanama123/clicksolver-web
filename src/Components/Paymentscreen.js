@@ -15,6 +15,12 @@ const Payment = () => {
   const { t } = useTranslation();
   const { isDarkMode } = useTheme();
 
+  useEffect(() => {
+    if (!location.state || !location.state.encodedId) {
+      window.location.replace("/");
+    }
+  }, [location.state]);
+
   // Assume encodedId is passed via location.state
   const { encodedId } = location.state || {};
 

@@ -16,6 +16,12 @@ const OrderScreen = () => {
   // serviceName is passed as an array of service objects via navigation state
   const { serviceName } = location.state || {};
 
+  useEffect(() => {
+    if (!serviceName) {
+      window.location.replace("/");
+    }
+  }, [serviceName]);
+
   // States
   const [services, setServices] = useState([]);
   const [showCoupons, setShowCoupons] = useState(false);
