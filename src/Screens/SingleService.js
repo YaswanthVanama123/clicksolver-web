@@ -28,6 +28,12 @@ const SingleService = () => {
     id = params.get('id');
   }
 
+  useEffect(() => {
+    if (!serviceName || !id) {
+      window.location.replace("/");
+    }
+  }, [serviceName, id]);
+
   // State variables
   const [services, setServices] = useState([]);
   const [quantities, setQuantities] = useState({});

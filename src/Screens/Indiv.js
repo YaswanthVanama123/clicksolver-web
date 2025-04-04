@@ -24,25 +24,7 @@ const PaintingServices = () => {
   const width = window.innerWidth;
   const isTablet = width >= 600;
 
-  // On mount, extract route parameters from location.state (if available) or fallback to URL query.
-  useEffect(() => {
-    let serviceObject, id;
-    if (locationRoute.state) {
-      serviceObject = locationRoute.state.serviceObject;
-      id = locationRoute.state.id;
-    } else {
-      const params = new URLSearchParams(window.location.search);
-      serviceObject = params.get('serviceObject');
-      id = params.get('id');
-    }
-    if (serviceObject) {
-      setName(serviceObject);
-      setId(id);
-      fetchServices(serviceObject);
-    }
-  }, [locationRoute.state]);
-
-  // Fetch subservices from the backend
+    // Fetch subservices from the backend
   const fetchServices = useCallback(async (serviceObject) => {
     setLoading(true);
     try {
@@ -57,6 +39,34 @@ const PaintingServices = () => {
       setLoading(false);
     }
   }, []);
+
+  // On mount, extract route parameters from location.state (if available) or fallback to URL query.
+  useEffect(() => {
+    let serviceObject, id;
+    if (locationRoute.state) {
+      serviceObject = locationRoute.state.serviceObject;
+      id = locationRoute.state.id;
+    } else {
+      const params = new URLSearchParams(window.location.search);
+      serviceObject = params.get('serviceObject');
+      id = params.get('id');
+    }
+    
+    // If there are no parameters, navigate to "/" with replace: true
+    if (!serviceObject || !id) {
+      window.location.replace("/");
+
+      return;
+    }
+  
+    setName(serviceObject);
+    setId(id);
+    fetchServices(serviceObject);
+  }, [locationRoute.state, navigate, fetchServices]);
+  
+
+
+
 
   // Handle back button: navigate back (or to home)
   const handleBack = useCallback(() => {
