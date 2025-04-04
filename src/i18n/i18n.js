@@ -7,24 +7,14 @@ import te from './locales/te.json';
 
 export const LANGUAGE_KEY = 'APP_LANGUAGE';
 
-const languageDetector = {
-  type: 'languageDetector',
-  async: false, // synchronous for web
-  detect: () => {
-    const storedLang = localStorage.getItem(LANGUAGE_KEY);
-    return storedLang || 'en';
-  },
-  init: () => {},
-  cacheUserLanguage: (lng) => {
-    localStorage.setItem(LANGUAGE_KEY, lng);
-  },
-};
+// Get the stored language from localStorage; default to 'en' if not set
+const storedLanguage = localStorage.getItem(LANGUAGE_KEY) || 'en';
 
 i18n
-  .use(languageDetector)
+  // You can remove your custom languageDetector if you’re handling detection manually.
   .use(initReactI18next)
   .init({
-    lng: 'en', // default language
+    lng: storedLanguage, // Use the stored language here
     fallbackLng: 'en',
     compatibilityJSON: 'v3',
     resources: {

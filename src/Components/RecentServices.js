@@ -53,7 +53,7 @@ const ServiceItemCard = ({ item, tab }) => {
       : null;
 
   return (
-    <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg p-3 mb-3 shadow`}>
+    <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg p-3 mb-3`}>
       {/* Top row: image + text */}
       <div className="flex flex-row">
         <img

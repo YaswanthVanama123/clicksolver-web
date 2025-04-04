@@ -260,9 +260,9 @@ const renderSpecialOffers = () => (
     return services.map((service) => (
       <div
         key={service.service_id}
-        className={`flex flex-row items-center gap-4 p-4 rounded-lg mb-4 ${
-          isDarkMode ? 'bg-gray-800' : 'bg-white'
-        } shadow`}
+        className={`flex flex-row items-center gap-4 p-4 mb-4 ${
+          isDarkMode ? 'bg-gray-900' : 'bg-white'
+        }`}
       >
         <img
           src={service.service_urls || 'https://via.placeholder.com/100x100'}
@@ -320,13 +320,13 @@ const renderSpecialOffers = () => (
     // Apply hide-scrollbar to the root container to hide vertical scrollbar
     <div
       className={`min-h-screen p-4 hide-scrollbar ${
-        isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'
+        isDarkMode ? 'bg-gray-900 text-white' : 'bg-white-100 text-gray-900'
       }`}
     >
       {/* Sticky Header */}
       <div
         className={`sticky top-0 z-50 ${
-          isDarkMode ? 'bg-gray-900' : 'bg-gray-100'
+          isDarkMode ? 'bg-gray-900' : 'bg-white-100'
         } pb-4 mb-4`}
       >
         <div className="flex justify-between items-center mb-4">

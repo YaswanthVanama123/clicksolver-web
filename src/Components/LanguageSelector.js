@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import axios from 'axios';
 import { changeAppLanguage } from '../i18n/languageChange';
+import { LANGUAGE_KEY } from '../i18n/i18n';
 import { useTheme } from '../context/ThemeContext';
 import { IoRadioButtonOn, IoRadioButtonOff } from 'react-icons/io5';
 
@@ -19,9 +19,9 @@ const LanguageSelector = () => {
   const navigate = useNavigate();
   const [selectedLanguage, setSelectedLanguage] = useState(null);
 
-  // Load saved language from localStorage
+  // Load saved language from localStorage using LANGUAGE_KEY
   useEffect(() => {
-    const savedLanguageCode = localStorage.getItem('selectedLanguage');
+    const savedLanguageCode = localStorage.getItem(LANGUAGE_KEY);
     if (savedLanguageCode) {
       setSelectedLanguage(savedLanguageCode);
       changeAppLanguage(savedLanguageCode);
@@ -40,7 +40,8 @@ const LanguageSelector = () => {
   // Save the chosen language and navigate home
   const onSaveSettings = async () => {
     try {
-      localStorage.setItem('selectedLanguage', selectedLanguage);
+      localStorage.setItem(LANGUAGE_KEY, selectedLanguage);
+      console.log("changed to key", LANGUAGE_KEY);
       navigate('/', { replace: true });
     } catch (error) {
       console.error('Error saving language:', error);

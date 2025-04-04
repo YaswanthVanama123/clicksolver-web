@@ -54,7 +54,7 @@ const ServiceItemCard = ({ item, tab }) => {
       : null;
 
   return (
-    <div className={`flex flex-col ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg p-4 mb-4 shadow`}>
+    <div className={`flex flex-col ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg p-4 mb-4`}>
       {/* Top Row: Image and Text */}
       <div className="flex flex-row items-center">
         <img
@@ -215,7 +215,7 @@ const ServiceTrackingListScreen = () => {
 
       {/* Filter Dropdown */}
       {isFilterVisible && (
-        <div className={`absolute right-4 mt-2 w-52 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg p-3 shadow-lg z-20`}>
+        <div className={`absolute right-4 mt-2 w-52 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} z-20`}>
           <p className={`text-sm font-semibold ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-2`}>
             {t('project_type') || 'PROJECT TYPE'}
           </p>
@@ -259,7 +259,7 @@ const ServiceTrackingListScreen = () => {
           filteredData.map((item, index) => (
             <div
               key={`${item.notification_id}_${index}`}
-              className={`flex justify-between items-center ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg p-4 mb-4 shadow cursor-pointer`}
+              className={`flex justify-between items-center ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg p-4 mb-4 cursor-pointer`}
               onClick={() => handleCardPress(item.tracking_id)}
             >
               <div className="flex flex-row items-center flex-1">

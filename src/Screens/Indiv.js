@@ -144,7 +144,7 @@ const ServiceItem = React.memo(
     const width = window.innerWidth;
     const isTablet = width >= 600;
     return (
-      <div className={`flex flex-row items-center gap-4 p-4 rounded-lg shadow mb-4 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
+      <div className={`flex flex-row items-center gap-4 p-4 rounded-lg mb-4 ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`}>
         <div>
           <img
             src={imageUrl || 'https://via.placeholder.com/100x100'}
