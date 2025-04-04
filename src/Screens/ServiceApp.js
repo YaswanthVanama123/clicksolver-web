@@ -352,11 +352,12 @@ const renderSpecialOffers = () => (
             </button>
             <div className="flex flex-col ml-2">
               <p
-                className={`text-lg italic ${
+                className={`text-lg italic flex items-center gap-2 ${
                   isDarkMode ? 'text-gray-300' : 'text-gray-600'
                 }`}
               >
-                {greeting} <span>{greetingIcon}</span>
+                {greeting}
+                {greetingIcon}
               </p>
               <p
                 className={`text-xl font-bold ${
