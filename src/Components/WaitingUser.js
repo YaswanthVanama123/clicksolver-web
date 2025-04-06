@@ -22,9 +22,8 @@ const WaitingUser = () => {
   const routeParams = locationRoute.state || {};
   const apiKey = 'q0k6sOfYNxdt3bGvqF6W1yvANHeVtrsu9T5KW9a4';
 
-
-   // Force full redirection if route parameters are missing
-   useEffect(() => {
+  // Force full redirection if route parameters are missing
+  useEffect(() => {
     if (!routeParams || Object.keys(routeParams).length === 0) {
       window.location.replace("/");
     }
@@ -397,6 +396,29 @@ const WaitingUser = () => {
       console.log('[Cancel & Retry] Backend loading set to false after retry.');
     }
   };
+
+  // ------------------ Periodic Cancel and Retry Every 2 Minutes ------------------
+  useEffect(() => {
+    let intervalId;
+    if (
+      decodedId ||
+      (encodedData &&
+        ![
+          'No workers found within 2 km radius',
+          'No user found or no worker matches subservices',
+          'No Firestore location data for these workers',
+          'No workers match the requested subservices',
+        ].includes(encodedData))
+    ) {
+      intervalId = setInterval(() => {
+        console.log('[Interval] 2 minutes passed, calling handleCancelAndRetry.');
+        handleCancelAndRetry();
+      }, 120000); // 120000 ms = 2 minutes
+    }
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [decodedId, encodedData]);
 
   // ------------------ Timer ------------------
   useEffect(() => {
