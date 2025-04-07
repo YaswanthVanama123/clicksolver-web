@@ -229,8 +229,10 @@ const WaitingUser = () => {
         console.log('[Fetch Data] No JWT token found.');
         return;
       }
+
+      
       const response = await axios.post(
-        'https://backend.clicksolver.com/api/workers-nearby',
+        'https://webapi-yc1h.onrender.com/api/workers-nearby',
         {
           area,
           city,
