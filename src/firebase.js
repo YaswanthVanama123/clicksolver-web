@@ -34,45 +34,58 @@ export const handleNotificationNavigation = (navigate, data) => {
 
 export const requestFCMToken = async (navigate) => {
   try {
-    console.log('[FCM] Requesting notification permission');
-    const permission = await Notification.requestPermission();
-    
-    if (permission !== 'granted') {
-      console.warn('[FCM] Notification permission not granted');
+    console.log('[FCM] Current permission:', Notification.permission);
+
+    if (Notification.permission === 'denied') {
+      alert('Notifications are blocked. Please enable them in your browser settings.');
       return;
+    }
+
+    if (Notification.permission === 'default') {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        alert('Notifications are required to receive updates. Please allow notifications.');
+        return;
+      }
     }
 
     console.log('[FCM] Registering service worker');
     const swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-    
+
     console.log('[FCM] Getting FCM token');
     const token = await getToken(messaging, {
       vapidKey: process.env.REACT_APP_FIREBASE_VAPID_KEY,
       serviceWorkerRegistration: swRegistration,
     });
 
-    console.log('[FCM] Token obtained:', token);
-    const cs_token = localStorage.getItem('cs_token');
-    const storedFcm = localStorage.getItem('fcm_token');
+    if (token) {
+      console.log('[FCM] Token obtained:', token);
 
-    if (!storedFcm && cs_token) {
-      console.log('[FCM] Storing new FCM token');
-      localStorage.setItem('fcm_token', token);
-      await axios.post(
-        'https://backend.clicksolver.com/api/user/store-fcm-token',
-        { fcmToken: token },
-        { headers: { Authorization: `Bearer ${cs_token}` } }
-      );
-      console.log('[FCM] Token stored successfully');
+      const cs_token = localStorage.getItem('cs_token');
+      const storedFcm = localStorage.getItem('fcm_token');
+
+      if (!storedFcm && cs_token) {
+        console.log('[FCM] Storing new FCM token to server');
+        await axios.post(
+          'https://backend.clicksolver.com/api/user/store-fcm-token',
+          { fcmToken: token },
+          { headers: { Authorization: `Bearer ${cs_token}` } }
+        );
+        localStorage.setItem('fcm_token', token);
+        console.log('[FCM] Token stored successfully');
+      }
+
+      // Foreground message listener
+      console.log('[FCM] Listening for foreground messages');
+      onMessage(messaging, (payload) => {
+        console.log('[FCM] Foreground message received:', payload);
+        handleNotificationNavigation(navigate, payload.data);
+      });
+    } else {
+      console.warn('[FCM] Failed to get FCM token');
     }
 
-    console.log('[FCM] Setting up foreground message listener');
-    onMessage(messaging, (payload) => {
-      console.log('[FCM] Foreground message received:', payload);
-      handleNotificationNavigation(navigate, payload.data);
-    });
-
   } catch (error) {
-    console.error('[FCM] Error:', error);
+    console.error('[FCM] Error requesting FCM token:', error);
   }
 };
