@@ -89,7 +89,7 @@ const PaintingServices = () => {
   return (
     <div className={`${isDarkMode ? 'bg-gray-900' : 'bg-white'} min-h-screen`}>
       {/* Header with back arrow, title, and search icon */}
-      <div className="flex items-center justify-between p-4 sticky top-0 z-50" style={{ backgroundColor: isDarkMode ? '#1a202c' : '#f7fafc' }}>
+      <div className="flex items-center justify-between p-4 fixed top-0 left-0 right-0 z-50" style={{ backgroundColor: isDarkMode ? '#1a202c' : '#f7fafc' }}>
         <button onClick={handleBack} className="p-2">
           <IoIosArrowBack size={24} color={isDarkMode ? '#fff' : '#000'} />
         </button>
@@ -102,7 +102,12 @@ const PaintingServices = () => {
       </div>
 
       {/* Banner */}
-      <div className={`flex items-center rounded-lg mx-4 my-4 ${isDarkMode ? 'bg-gray-700' : 'bg-yellow-50'}`}>
+      <div
+  className={`flex items-center rounded-lg mx-4 my-4 ${
+    isDarkMode ? 'bg-gray-700' : 'bg-yellow-50'
+  }`}
+  style={{ marginTop: '70px' }}
+>
         <div className="flex-1 p-4">
           <div className="mb-2">
             <p className="text-2xl font-bold" style={{ color: '#ed8936' }}>

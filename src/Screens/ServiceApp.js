@@ -317,19 +317,19 @@ const renderSpecialOffers = () => (
   };
 
   return (
-    // Apply hide-scrollbar to the root container to hide vertical scrollbar
     <div
-      className={`min-h-screen p-4 hide-scrollbar ${
-        isDarkMode ? 'bg-gray-900 text-white' : 'bg-white-100 text-gray-900'
+      className={`min-h-screen ${
+        isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'
       }`}
     >
-      {/* Sticky Header */}
+      {/* ─── FIXED HEADER + SEARCH ─── */}
       <div
-        className={`sticky top-0 z-50 ${
-          isDarkMode ? 'bg-gray-900' : 'bg-white-100'
-        } pb-4 mb-4`}
+        className={`fixed top-0 left-0 right-0 z-50 ${
+          isDarkMode ? 'bg-gray-900' : 'bg-white'
+        }`}
       >
-        <div className="flex justify-between items-center mb-4">
+        {/* Profile Header */}
+        <div className="flex justify-between items-center p-4">
           <div className="flex items-center">
             <button onClick={() => navigate('/account')}>
               {profile ? (
@@ -369,13 +369,13 @@ const renderSpecialOffers = () => (
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <button onClick={() => navigate('/notifications')}>
+            <button onClick={handleNotification}>
               <FaBell
                 size={23}
                 className={isDarkMode ? 'text-white' : 'text-gray-800'}
               />
             </button>
-            <button onClick={() => navigate('/help')}>
+            <button onClick={handleHelp}>
               <FaQuestionCircle
                 size={23}
                 className={isDarkMode ? 'text-white' : 'text-gray-800'}
@@ -383,11 +383,18 @@ const renderSpecialOffers = () => (
             </button>
           </div>
         </div>
-        <QuickSearch />
+  
+        {/* Search Bar */}
+        <div className="px-4 pb-4">
+          <QuickSearch />
+        </div>
       </div>
-
-      {/* Main Content */}
-      <div className={`${messageBoxDisplay ? 'mb-24' : ''}`}>
+  
+      {/* ─── MAIN CONTENT ─── */}
+      <div
+        className={`${messageBoxDisplay ? 'mb-24' : ''} px-4`}
+        style={{ paddingTop: '170px' }} // adjust this to = header height + search height
+      >
         {/* Special Offers */}
         <div className="mb-6">
           <div className="flex justify-between items-center mb-2">
@@ -401,7 +408,7 @@ const renderSpecialOffers = () => (
           </div>
           {renderSpecialOffers()}
         </div>
-
+  
         {/* Services */}
         <div className="mb-6">
           <div className="flex justify-between items-center mb-2">
@@ -416,8 +423,8 @@ const renderSpecialOffers = () => (
           {renderServices()}
         </div>
       </div>
-
-      {/* Tracking Message Box */}
+  
+      {/* ─── TRACKING MESSAGE BOX ─── */}
       {messageBoxDisplay && (
         <div
           className={`fixed bottom-14 left-0 right-0 z-50 p-4 ${
@@ -432,7 +439,7 @@ const renderSpecialOffers = () => (
                   isDarkMode ? 'bg-gray-800' : 'bg-white'
                 }`}
                 style={{ width: trackScreen.length > 1 ? '80%' : '88%' }}
-                onClick={() => {
+                onClick={() =>
                   navigate(item.screen, {
                     state: {
                       encodedId: item.encodedId,
@@ -445,8 +452,8 @@ const renderSpecialOffers = () => (
                       location: item.location,
                       offer: item.offer,
                     },
-                  });
-                }}
+                  })
+                }
               >
                 <div className="flex flex-row items-center flex-1">
                   <div className="w-12 h-12 bg-orange-500 rounded-full flex justify-center items-center">
@@ -474,9 +481,9 @@ const renderSpecialOffers = () => (
                         ? item.serviceBooked
                             .slice(0, 2)
                             .map(
-                              (service) =>
-                                t(`singleService_${service.main_service_id}`) ||
-                                service.serviceName
+                              (s) =>
+                                t(`singleService_${s.main_service_id}`) ||
+                                s.serviceName
                             )
                             .join(', ') +
                           (item.serviceBooked.length > 2 ? '...' : '')
@@ -490,11 +497,20 @@ const renderSpecialOffers = () => (
                       {item.screen === 'Paymentscreen'
                         ? t('payment_in_progress', 'Payment in progress')
                         : item.screen === 'UserNavigation'
-                        ? t('commander_on_the_way', 'Commander is on the way')
+                        ? t(
+                            'commander_on_the_way',
+                            'Commander is on the way'
+                          )
                         : item.screen === 'userwaiting'
-                        ? t('user_waiting_for_help', 'User is waiting for help')
+                        ? t(
+                            'user_waiting_for_help',
+                            'User is waiting for help'
+                          )
                         : item.screen === 'OtpVerification'
-                        ? t('user_waiting_for_otp', 'User is waiting for OTP verification')
+                        ? t(
+                            'user_waiting_for_otp',
+                            'User is waiting for OTP verification'
+                          )
                         : item.screen === 'worktimescreen'
                         ? t('work_in_progress', 'Work in progress')
                         : t('nothing', 'Nothing')}
@@ -509,8 +525,8 @@ const renderSpecialOffers = () => (
           </div>
         </div>
       )}
-
-      {/* Rating Modal */}
+  
+      {/* ─── FEEDBACK MODAL ─── */}
       {isModalVisible && (
         <div
           className="fixed inset-0 flex justify-center items-end"
@@ -532,7 +548,8 @@ const renderSpecialOffers = () => (
                 isDarkMode ? 'text-white' : 'text-gray-800'
               }`}
             >
-              {t('feedback_modal_title') || 'How was the quality of your Service?'}
+              {t('feedback_modal_title') ||
+                'How was the quality of your Service?'}
             </h2>
             <p
               className={`text-sm text-center mt-2 ${
@@ -544,7 +561,11 @@ const renderSpecialOffers = () => (
             </p>
             <div className="flex justify-center my-4">
               {[1, 2, 3, 4, 5].map((star) => (
-                <button key={star} onClick={() => setRating(star)} className="mx-1">
+                <button
+                  key={star}
+                  onClick={() => setRating(star)}
+                  className="mx-1"
+                >
                   {star <= rating ? (
                     <FaStar size={30} className="text-yellow-400" />
                   ) : (
@@ -555,12 +576,16 @@ const renderSpecialOffers = () => (
             </div>
             <textarea
               className={`w-full h-20 p-2 border rounded-lg ${
-                isDarkMode ? 'bg-gray-700 text-white border-gray-600' : 'bg-white text-gray-900 border-gray-300'
+                isDarkMode
+                  ? 'bg-gray-700 text-white border-gray-600'
+                  : 'bg-white text-gray-900 border-gray-300'
               }`}
-              placeholder={t('feedback_placeholder') || 'Write your comment here...'}
+              placeholder={
+                t('feedback_placeholder') || 'Write your comment here...'
+              }
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-            ></textarea>
+            />
             <div className="flex justify-between mt-4">
               <button
                 onClick={closeModal}
@@ -582,6 +607,7 @@ const renderSpecialOffers = () => (
       )}
     </div>
   );
+  
 }
 
 export default ServiceApp;

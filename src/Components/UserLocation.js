@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import axios from 'axios';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaArrowLeft, FaCrosshairs } from 'react-icons/fa';
@@ -47,9 +47,9 @@ const UserLocation = () => {
   const olaMapsRef = useRef(null);
 
   // Example polygon geofences (coordinates as [lat, lng])
-  const polygonGeofences = [
+  const polygonGeofences = useMemo(() => [
     {
-      id: 'zone1',
+      id: 'zone1', 
       coordinates: [
         [17.006761409194525, 80.53093335197622],
         [17.005373260064985, 80.53291176992008],
@@ -71,7 +71,8 @@ const UserLocation = () => {
         [17.006761409194525, 80.53093335197622],
       ],
     },
-  ];
+  ], []);
+  
 
   // Ray-casting algorithm to check if a point is inside a polygon
   const isPointInPolygon = (point, polygon) => {
@@ -331,6 +332,57 @@ const UserLocation = () => {
   };
 
   // Handler for booking confirmation after filling address details
+  // const handleBookCommander = () => {
+  //   let hasError = false;
+  //   setCityError('');
+  //   setAreaError('');
+  //   setPincodeError('');
+  //   setPhoneError('');
+  //   setNameError('');
+
+  //   if (!city) {
+  //     setCityError(t('city_required') || 'City is required.');
+  //     hasError = true;
+  //   }
+  //   if (!area) {
+  //     setAreaError(t('area_required') || 'Area is required.');
+  //     hasError = true;
+  //   }
+  //   if (!pincode) {
+  //     setPincodeError(t('pincode_required') || 'Pincode is required.');
+  //     hasError = true;
+  //   }
+  //   if (!alternatePhoneNumber) {
+  //     setPhoneError(t('phone_required') || 'Phone number is required.');
+  //     hasError = true;
+  //   }
+  //   if (!alternateName) {
+  //     setNameError(t('name_required') || 'Name is required.');
+  //     hasError = true;
+  //   }
+
+  //   if (!hasError) {
+  //     setShowMessageBox(false);
+  //     const state = {
+  //       area,
+  //       city,
+  //       pincode,
+  //       alternateName,
+  //       alternatePhoneNumber,
+  //       serviceBooked: service,
+  //       location: userLocation,
+  //       discount,
+  //       tipAmount,
+  //       offer: offer || null,
+  //     };
+  //     // Save state to sessionStorage
+  //     sessionStorage.setItem('userWaitingState', JSON.stringify(state));
+  //     // Replace the current page, which clears the history
+  //     window.location.replace('/userwaiting');
+  //   }
+    
+  // };
+
   const handleBookCommander = () => {
     let hasError = false;
     setCityError('');
@@ -380,6 +432,7 @@ const UserLocation = () => {
       });
     }
   };
+
 
   // Handler for back button press
   const handleBackPress = () => {
