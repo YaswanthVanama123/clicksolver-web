@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -7,42 +7,46 @@ import {
   useLocation,
   useNavigate,
   Navigate,
-} from 'react-router-dom';
-import { ThemeProvider } from './context/ThemeContext';
-import './i18n/i18n';
-import ServiceApp from './Screens/ServiceApp';
-import PaintingServices from './Screens/Indiv';
-import SingleService from './Screens/SingleService';
-import LoginScreen from './Components/LoginScreen';
-import VerificationScreen from './Components/VerificationScreen';
-import OrderScreen from './Components/OrderScreen';
-import UserLocation from './Components/UserLocation';
-import LocationSearch from './Components/LocationSearch';
-import WaitingUser from './Components/WaitingUser';
-import RecentServices from './Components/RecentServices';
-import ServiceTrackingListScreen from './Components/ServiceTrackingListScreen';
-import ProfileScreen from './Components/ProfileScreen';
-import LanguageSelector from './Components/LanguageSelector';
-import { FaHome, FaClipboard, FaWallet, FaUser } from 'react-icons/fa';
-import EditProfile from './Components/EditProfile';
-import HelpScreen from './Components/HelpScreen';
-import MyReferrals from './Components/MyReferrals';
-import ReferralScreen from './Components/ReferralScreen';
-import AboutCS from './Components/AboutCS';
-import AccountDelete from './Components/AccountDelete';
-import ServiceBookingItem from './Components/ServiceBookingItem';
-import ServiceBookingOngoingItem from './Components/ServiceBookingOngoingItem';
-import ServiceTrackingItemScreen from './Components/ServiceTrackingItemScreen';
-import Navigation from './Components/Navigation';
-import ServiceInProgressScreen from './Components/ServiceInProgressScreen';
-import Payment from './Components/Paymentscreen';
-import { requestFCMToken, handleNotificationNavigation } from './firebase';
-import SearchItem from './Components/SearchItem';
-import { getPendingNotifications, clearPendingNotifications } from './indexedDBHelpers';
-import ScrollToTop from './Components/ScrollToTop';
-import PrivacyPolicyPage from './Components/PrivacyPolicyPage';
-import SignUpScreen from './Components/SignUpScreen';
-import { useTranslation } from 'react-i18next';
+} from "react-router-dom";
+import { ThemeProvider } from "./context/ThemeContext";
+import "./i18n/i18n";
+import ServiceApp from "./Screens/ServiceApp";
+import PaintingServices from "./Screens/Indiv";
+import SingleService from "./Screens/SingleService";
+import LoginScreen from "./Components/LoginScreen";
+import VerificationScreen from "./Components/VerificationScreen";
+import OrderScreen from "./Components/OrderScreen";
+import UserLocation from "./Components/UserLocation";
+import LocationSearch from "./Components/LocationSearch";
+import WaitingUser from "./Components/WaitingUser";
+import RecentServices from "./Components/RecentServices";
+import ServiceTrackingListScreen from "./Components/ServiceTrackingListScreen";
+import ProfileScreen from "./Components/ProfileScreen";
+import LanguageSelector from "./Components/LanguageSelector";
+import { FaHome, FaClipboard, FaWallet, FaUser } from "react-icons/fa";
+import EditProfile from "./Components/EditProfile";
+import HelpScreen from "./Components/HelpScreen";
+import MyReferrals from "./Components/MyReferrals";
+import ReferralScreen from "./Components/ReferralScreen";
+import AboutCS from "./Components/AboutCS";
+import AccountDelete from "./Components/AccountDelete";
+import ServiceBookingItem from "./Components/ServiceBookingItem";
+import ServiceBookingOngoingItem from "./Components/ServiceBookingOngoingItem";
+import ServiceTrackingItemScreen from "./Components/ServiceTrackingItemScreen";
+import Navigation from "./Components/Navigation";
+import ServiceInProgressScreen from "./Components/ServiceInProgressScreen";
+import Payment from "./Components/Paymentscreen";
+import { requestFCMToken, handleNotificationNavigation } from "./firebase";
+import SearchItem from "./Components/SearchItem";
+import {
+  getPendingNotifications,
+  clearPendingNotifications,
+} from "./indexedDBHelpers";
+import ScrollToTop from "./Components/ScrollToTop";
+import PrivacyPolicyPage from "./Components/PrivacyPolicyPage";
+import SignUpScreen from "./Components/SignUpScreen";
+import { useTranslation } from "react-i18next";
+import PrivacyPolicy from "./Components/PrivacyPolicy";
 
 // --- TabNavigator Component ---
 function TabNavigator() {
@@ -54,45 +58,45 @@ function TabNavigator() {
         end
         className={({ isActive }) =>
           isActive
-            ? 'flex flex-col items-center text-orange-500'
-            : 'flex flex-col items-center text-gray-500'
+            ? "flex flex-col items-center text-orange-500"
+            : "flex flex-col items-center text-gray-500"
         }
       >
         <FaHome size={24} />
-        <span className="text-xs">{t('tab_home') || 'Home'}</span>
+        <span className="text-xs">{t("tab_home") || "Home"}</span>
       </NavLink>
       <NavLink
         to="/bookings"
         className={({ isActive }) =>
           isActive
-            ? 'flex flex-col items-center text-orange-500'
-            : 'flex flex-col items-center text-gray-500'
+            ? "flex flex-col items-center text-orange-500"
+            : "flex flex-col items-center text-gray-500"
         }
       >
         <FaClipboard size={24} />
-        <span className="text-xs">{t('tab_bookings') || 'Bookings'}</span>
+        <span className="text-xs">{t("tab_bookings") || "Bookings"}</span>
       </NavLink>
       <NavLink
         to="/tracking"
         className={({ isActive }) =>
           isActive
-            ? 'flex flex-col items-center text-orange-500'
-            : 'flex flex-col items-center text-gray-500'
+            ? "flex flex-col items-center text-orange-500"
+            : "flex flex-col items-center text-gray-500"
         }
       >
         <FaWallet size={24} />
-        <span className="text-xs">{t('tab_tracking') || 'Tracking'}</span>
+        <span className="text-xs">{t("tab_tracking") || "Tracking"}</span>
       </NavLink>
       <NavLink
         to="/account"
         className={({ isActive }) =>
           isActive
-            ? 'flex flex-col items-center text-orange-500'
-            : 'flex flex-col items-center text-gray-500'
+            ? "flex flex-col items-center text-orange-500"
+            : "flex flex-col items-center text-gray-500"
         }
       >
         <FaUser size={24} />
-        <span className="text-xs">{t('tab_account') || 'Account'}</span>
+        <span className="text-xs">{t("tab_account") || "Account"}</span>
       </NavLink>
     </div>
   );
@@ -102,18 +106,22 @@ function TabNavigator() {
 function AppContent() {
   const location = useLocation();
   // Define routes where the TabNavigator should be visible.
-  const tabRoutes = ['/', '/bookings', '/tracking', '/account'];
+  const tabRoutes = ["/", "/bookings", "/tracking", "/account"];
   const showTabs = tabRoutes.includes(location.pathname);
 
   return (
     <>
-      <div className={`${showTabs ? 'pb-16' : ''} overflow-hidden`}>
+      <div className={`${showTabs ? "pb-16" : ""} overflow-hidden`}>
         <Routes>
           <Route path="/" element={<ServiceApp />} />
           <Route path="/SignUpScreen" element={<SignUpScreen />} />
           <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+          <Route path="/privacypolicy" element={<PrivacyPolicy />} />
           <Route path="/search" element={<SearchItem />} />
-          <Route path="/ServiceTrackingItem" element={<ServiceTrackingItemScreen />} />
+          <Route
+            path="/ServiceTrackingItem"
+            element={<ServiceTrackingItemScreen />}
+          />
           <Route path="/UserNavigation" element={<Navigation />} />
           <Route path="/worktimescreen" element={<ServiceInProgressScreen />} />
           <Route path="/Paymentscreen" element={<Payment />} />
@@ -121,7 +129,10 @@ function AppContent() {
           <Route path="/about-cs" element={<AboutCS />} />
           <Route path="/delete-account" element={<AccountDelete />} />
           <Route path="/serviceBookingItem" element={<ServiceBookingItem />} />
-          <Route path="/ServiceBookingOngoingItem" element={<ServiceBookingOngoingItem />} />
+          <Route
+            path="/ServiceBookingOngoingItem"
+            element={<ServiceBookingOngoingItem />}
+          />
           <Route path="/edit-profile" element={<EditProfile />} />
           <Route path="/help" element={<HelpScreen />} />
           <Route path="/serviceCategory" element={<PaintingServices />} />
@@ -150,35 +161,42 @@ function App() {
 
   const handleVisibilityChange = () => {
     console.log(`[APP] Visibility changed to: ${document.visibilityState}`);
-    
-    if (document.visibilityState === 'visible') {
-      console.log('[APP] App entered foreground, checking notifications');
+
+    if (document.visibilityState === "visible") {
+      console.log("[APP] App entered foreground, checking notifications");
       getPendingNotifications()
         .then((notifications) => {
-          console.log(`[APP] Processing ${notifications.length} pending notifications`);
+          console.log(
+            `[APP] Processing ${notifications.length} pending notifications`
+          );
           notifications.forEach((notification) => {
             handleNotificationNavigation(navigate, notification);
           });
           return clearPendingNotifications();
         })
-        .then(() => console.log('[APP] Notifications processed and cleared'))
-        .catch((error) => console.error('[APP] Error processing notifications:', error));
+        .then(() => console.log("[APP] Notifications processed and cleared"))
+        .catch((error) =>
+          console.error("[APP] Error processing notifications:", error)
+        );
     }
   };
 
   useEffect(() => {
     requestFCMToken(navigate);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     // Listen for background messages forwarded from the service worker
-    navigator.serviceWorker.addEventListener('message', (event) => {
-      if (event.data?.type === 'FCM_BACKGROUND_MESSAGE') {
-        console.log('[APP] Background notification received from SW:', event.data.payload);
+    navigator.serviceWorker.addEventListener("message", (event) => {
+      if (event.data?.type === "FCM_BACKGROUND_MESSAGE") {
+        console.log(
+          "[APP] Background notification received from SW:",
+          event.data.payload
+        );
       }
     });
-    
+
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [navigate]);
 
