@@ -7,7 +7,7 @@ const PrivacyPolicy = () => {
         Privacy Policy for Click Solver
       </h1>
       <p className="mb-4">
-        <strong>Last updated:</strong> july 1, 2025
+        <strong>Last updated:</strong> July 1, 2025
       </p>
 
       <p className="mb-4">
