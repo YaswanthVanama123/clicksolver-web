@@ -47,6 +47,7 @@ import PrivacyPolicyPage from "./Components/PrivacyPolicyPage";
 import SignUpScreen from "./Components/SignUpScreen";
 import { useTranslation } from "react-i18next";
 import PrivacyPolicy from "./Components/PrivacyPolicy";
+import SupportPage from "./Components/SupportPage.js";
 
 // --- TabNavigator Component ---
 function TabNavigator() {
@@ -117,6 +118,7 @@ function AppContent() {
           <Route path="/SignUpScreen" element={<SignUpScreen />} />
           <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
           <Route path="/privacypolicy" element={<PrivacyPolicy />} />
+          <Route path="/support" element={<SupportPage />} />
           <Route path="/search" element={<SearchItem />} />
           <Route
             path="/ServiceTrackingItem"
